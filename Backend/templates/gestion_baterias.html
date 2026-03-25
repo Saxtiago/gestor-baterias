@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Gestión</title>
+</head>
+<body>
+    <h2>Inventario de Baterías</h2>
+    <a href="/agregar" class="button">+ Agregar Nueva Batería</a>
+    <hr>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th> 
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-datos">
+            <tr>
+                <td>1</td>
+                <td>Bosch</td>
+                <td>S4 55D</td>
+                <td>
+                    <a href="/editar">Editar</a> | 
+                    <a href="/eliminar" style="color:red">Eliminar</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <a href="/">Volver al Inicio</a>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmar Eliminación</title>
+</head>
+<body>
+    <div style="border: 1px solid red; padding: 20px; text-align: center;">
+        <h1>¿Estás seguro?</h1>
+        <p>Estás a punto de eliminar permanentemente el registro con <strong>ID: {{ id_bateria }}</strong>.</p>
+        <p>Esta acción sobrescribirá el archivo Excel y no se puede deshacer.</p>
+
+        <form method="POST">
+            <button type="submit" style="background-color: red; color: white;">SÍ, ELIMINAR TODO EL REGISTRO</button>
+            <a href="/gestion_baterias">Cancelar y volver</a>
+        </form>
+    </div>
+</body>
+</html>
