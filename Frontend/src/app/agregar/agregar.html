@@ -87,8 +87,9 @@
 	</div>
 
 	<div class="actions">
-		<button class="btn primary" type="submit">Guardar</button>
+		<button class="btn primary" type="submit" [disabled]="isSaving">Guardar</button>
 		<button class="btn ghost" type="button" (click)="onReset()">Limpiar</button>
 		<span class="status" *ngIf="savedMessage">{{ savedMessage }}</span>
+		<span class="status error" *ngIf="errorMessage">{{ errorMessage }}</span>
 	</div>
 </form>

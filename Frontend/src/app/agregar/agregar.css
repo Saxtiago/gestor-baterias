@@ -106,6 +106,10 @@
 	font-weight: 600;
 }
 
+.status.error {
+	color: #dc2626;
+}
+
 @media (max-width: 720px) {
 	.form-header {
 		flex-direction: column;
