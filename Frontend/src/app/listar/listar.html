@@ -9,17 +9,17 @@
 <section class="filters">
 	<label class="field">
 		<span>Buscar</span>
-		<input type="text" [(ngModel)]="searchText" placeholder="Codigo, serial, modelo..." />
+		<input type="text" [(ngModel)]="searchText" (ngModelChange)="onFiltersChange()" placeholder="Codigo, serial, modelo..." />
 	</label>
 
 	<label class="field">
 		<span>Negocio</span>
-		<input type="text" [(ngModel)]="negocioFilter" placeholder="Ej: BODEGA SISTEMAS" />
+		<input type="text" [(ngModel)]="negocioFilter" (ngModelChange)="onFiltersChange()" placeholder="Ej: BODEGA SISTEMAS" />
 	</label>
 
 	<label class="field">
 		<span>Estado</span>
-		<select [(ngModel)]="estadoFilter">
+		<select [(ngModel)]="estadoFilter" (ngModelChange)="onFiltersChange()">
 			<option value="">Todos</option>
 			<option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
 		</select>
@@ -29,47 +29,55 @@
 </section>
 
 <section class="table-card">
-	<table>
-		<thead>
-			<tr>
-				<th>COD</th>
-				<th>Negocio</th>
-				<th>UPS Marca</th>
-				<th>Modelo</th>
-				<th>Capacidad</th>
-				<th>Serial</th>
-				<th>Inventario No</th>
-				<th>Instalacion</th>
-				<th>Referencia</th>
-				<th>Cantidad</th>
-				<th>Vencimiento</th>
-				<th>Estado</th>
-				<th>Anos / Meses / Dias</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr *ngFor="let registro of registrosFiltrados">
-				<td>{{ registro.cod }}</td>
-				<td>{{ registro.negocio }}</td>
-				<td>{{ registro.upsMarca }}</td>
-				<td>{{ registro.modelo }}</td>
-				<td>{{ registro.capacidad }}</td>
-				<td>{{ registro.serial }}</td>
-				<td>{{ registro.inventarioNo }}</td>
-				<td>{{ registro.fechaInstalacion }}</td>
-				<td>{{ registro.referencia }}</td>
-				<td>{{ registro.cantidad }}</td>
-				<td>{{ registro.fechaVencimiento }}</td>
-				<td>
-					<span class="estado" [class.vencido]="registro.estado === 'Vencido'" [class.por-vencer]="registro.estado === 'Por vencer'">
-						{{ registro.estado }}
-					</span>
-				</td>
-				<td>{{ registro.anosMesesDias }}</td>
-			</tr>
-			<tr *ngIf="registrosFiltrados.length === 0">
-				<td colspan="13" class="empty">Sin resultados con los filtros actuales.</td>
-			</tr>
-		</tbody>
-	</table>
+	<ng-container *ngIf="registrosFiltrados$ | async as registrosFiltrados; else loadingTable">
+		<table>
+			<thead>
+				<tr>
+					<th>COD</th>
+					<th>Negocio</th>
+					<th>UPS Marca</th>
+					<th>Modelo</th>
+					<th>Capacidad</th>
+					<th>Serial</th>
+					<th>Inventario No</th>
+					<th>Instalacion</th>
+					<th>Referencia</th>
+					<th>Cantidad</th>
+					<th>Vencimiento</th>
+					<th>Estado</th>
+					<th>Anos / Meses / Dias</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let registro of registrosFiltrados">
+					<td>{{ registro.cod }}</td>
+					<td>{{ registro.negocio }}</td>
+					<td>{{ registro.upsMarca }}</td>
+					<td>{{ registro.modelo }}</td>
+					<td>{{ registro.capacidad }}</td>
+					<td>{{ registro.serial }}</td>
+					<td>{{ registro.inventarioNo }}</td>
+					<td>{{ registro.fechaInstalacion }}</td>
+					<td>{{ registro.referencia }}</td>
+					<td>{{ registro.cantidad }}</td>
+					<td>{{ registro.fechaVencimiento }}</td>
+					<td>
+						<span class="estado" [class.vencido]="registro.estado === 'Vencido'" [class.por-vencer]="registro.estado === 'Por vencer'">
+							{{ registro.estado }}
+						</span>
+					</td>
+					<td>{{ registro.anosMesesDias }}</td>
+				</tr>
+				<tr *ngIf="registrosFiltrados.length === 0">
+					<td colspan="13" class="empty">Sin resultados con los filtros actuales.</td>
+				</tr>
+			</tbody>
+		</table>
+	</ng-container>
+	<ng-template #loadingTable>
+		<div class="empty">Cargando registros...</div>
+	</ng-template>
 </section>
+
+<p class="status" *ngIf="isLoading">Cargando datos desde el Excel...</p>
+<p class="status error" *ngIf="errorMessage">{{ errorMessage }}</p>
