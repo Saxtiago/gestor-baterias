@@ -1,1 +1,94 @@
-<p>agregar works!</p>
+<section class="form-header">
+	<div>
+		<h1>Agregar bateria</h1>
+		<p>Completa los datos base. Los campos calculados se actualizan automaticamente.</p>
+	</div>
+	<a class="back-link" routerLink="/modulos/baterias">← Volver al menu</a>
+</section>
+
+<form class="form-card" [formGroup]="batteryForm" (ngSubmit)="onSubmit()" novalidate>
+	<div class="form-grid">
+		<label class="field">
+			<span>COD</span>
+			<input type="text" formControlName="cod" placeholder="Ej: 990" />
+			<small *ngIf="batteryForm.controls.cod.touched && batteryForm.controls.cod.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Negocio</span>
+			<input type="text" formControlName="negocio" placeholder="Ej: BODEGA SISTEMAS" />
+			<small *ngIf="batteryForm.controls.negocio.touched && batteryForm.controls.negocio.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>UPS Marca</span>
+			<input type="text" formControlName="upsMarca" placeholder="Ej: POWERWARE" />
+			<small *ngIf="batteryForm.controls.upsMarca.touched && batteryForm.controls.upsMarca.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Modelo</span>
+			<input type="text" formControlName="modelo" placeholder="Ej: PW9120 3000" />
+			<small *ngIf="batteryForm.controls.modelo.touched && batteryForm.controls.modelo.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Capacidad</span>
+			<input type="text" formControlName="capacidad" placeholder="Ej: 3KVA" />
+			<small *ngIf="batteryForm.controls.capacidad.touched && batteryForm.controls.capacidad.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Serial</span>
+			<input type="text" formControlName="serial" placeholder="Ej: RW512A0334" />
+			<small *ngIf="batteryForm.controls.serial.touched && batteryForm.controls.serial.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Inventario No</span>
+			<input type="text" formControlName="inventarioNo" placeholder="Ej: 1223025" />
+		</label>
+
+		<label class="field">
+			<span>Fecha de instalacion</span>
+			<input type="date" formControlName="fechaInstalacion" />
+			<small *ngIf="batteryForm.controls.fechaInstalacion.touched && batteryForm.controls.fechaInstalacion.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Referencia</span>
+			<input type="text" formControlName="referencia" placeholder="Ej: 12V-7AMP" />
+			<small *ngIf="batteryForm.controls.referencia.touched && batteryForm.controls.referencia.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Cantidad</span>
+			<input type="number" min="1" formControlName="cantidad" />
+			<small *ngIf="batteryForm.controls.cantidad.touched && batteryForm.controls.cantidad.invalid">Debe ser mayor que 0.</small>
+		</label>
+	</div>
+
+	<div class="computed-grid">
+		<label class="field">
+			<span>Fecha de vencimiento</span>
+			<input type="text" [value]="fechaVencimiento" readonly />
+		</label>
+
+		<label class="field">
+			<span>Estado</span>
+			<input type="text" [value]="estado" readonly />
+		</label>
+
+
+		<label class="field">
+			<span>Años / Meses / Dias</span>
+			<input type="text" [value]="tiempoDetalle" readonly />
+		</label>
+	</div>
+
+	<div class="actions">
+		<button class="btn primary" type="submit">Guardar</button>
+		<button class="btn ghost" type="button" (click)="onReset()">Limpiar</button>
+		<span class="status" *ngIf="savedMessage">{{ savedMessage }}</span>
+	</div>
+</form>
