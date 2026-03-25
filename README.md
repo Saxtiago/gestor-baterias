@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # GestorBateriasFrontend
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
@@ -57,3 +58,6 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+=======
+# gestor-baterias
+>>>>>>> e764884984156889b8e9ef0bef6c8e9ad06d654d
