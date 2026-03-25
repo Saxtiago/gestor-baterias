@@ -1,16 +1,20 @@
 
 import { NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-agregar',
-  imports: [NgIf, ReactiveFormsModule, RouterLink],
+  imports: [HttpClientModule, NgIf, ReactiveFormsModule, RouterLink],
   templateUrl: './agregar.html',
   styleUrl: './agregar.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Agregar {
+  private readonly apiUrl = 'http://127.0.0.1:5000/api/baterias';
   private readonly defaultLifeMonths = 36;
 
   protected readonly batteryForm = new FormGroup({
@@ -56,6 +60,13 @@ export class Agregar {
   });
 
   protected savedMessage = '';
+  protected errorMessage = '';
+  protected isSaving = false;
+
+  constructor(
+    private readonly http: HttpClient,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   get fechaVencimiento(): string {
     const dueDate = this.getDueDate();
@@ -106,21 +117,30 @@ export class Agregar {
 
   onSubmit(): void {
     this.savedMessage = '';
+    this.errorMessage = '';
     if (this.batteryForm.invalid) {
       this.batteryForm.markAllAsTouched();
       return;
     }
 
-    const payload = {
-      ...this.batteryForm.getRawValue(),
-      fechaVencimiento: this.fechaVencimiento,
-      estado: this.estado,
-      diasVencidos: this.diasVencidos,
-      anosMesesDias: this.tiempoDetalle,
-    };
+    this.isSaving = true;
+    this.cdr.markForCheck();
+    const payload = this.buildPayload();
 
-    console.log('Registro listo para guardar', payload);
-    this.savedMessage = 'Registro listo para guardar (temporal).';
+    this.http.post(this.apiUrl, payload).pipe(
+      finalize(() => {
+        this.isSaving = false;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
+      next: () => {
+        this.savedMessage = 'Registro guardado.';
+        this.onReset();
+      },
+      error: () => {
+        this.errorMessage = 'No se pudo guardar el registro.';
+      },
+    });
   }
 
   onReset(): void {
@@ -137,6 +157,28 @@ export class Agregar {
       cantidad: 1,
     });
     this.savedMessage = '';
+    this.errorMessage = '';
+  }
+
+  private buildPayload(): Record<string, string | number> {
+    const raw = this.batteryForm.getRawValue();
+    const diasVencidos = this.diasVencidos;
+    return {
+      COD: raw.cod,
+      Negocio: raw.negocio,
+      'UPS Marca': raw.upsMarca,
+      Modelo: raw.modelo,
+      Capacidad: raw.capacidad,
+      Serial: raw.serial,
+      'Inventario No': raw.inventarioNo,
+      'FECHA DE INSTALACION': raw.fechaInstalacion,
+      REFERENCIA: raw.referencia,
+      CANTIDAD: raw.cantidad,
+      'FECHA DE VENCIMIENTO': this.fechaVencimiento,
+      ESTADO: this.estado,
+      'DIAS VENCIDOS': diasVencidos ?? '',
+      'AÑOS/ MESES/ DIAS': this.tiempoDetalle,
+    };
   }
 
   private getDueDate(): Date | null {
