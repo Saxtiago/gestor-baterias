@@ -1,0 +1,144 @@
+.edit-header {
+	max-width: 1100px;
+	margin: 0 auto 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.edit-header h1 {
+	margin: 0;
+	font-size: 2rem;
+	color: #0f172a;
+}
+
+.edit-header p {
+	margin: 0.4rem 0 0;
+	color: #475569;
+}
+
+.back-link {
+	color: #0f766e;
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.search-bar {
+	max-width: 1100px;
+	margin: 0 auto 1.5rem;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	font-size: 0.9rem;
+	color: #0f172a;
+}
+
+.field input {
+	border: 1px solid #cbd5f5;
+	border-radius: 10px;
+	padding: 0.55rem 0.7rem;
+	font-size: 0.95rem;
+	outline: none;
+	background: #ffffff;
+}
+
+.results {
+	max-width: 1100px;
+	margin: 0 auto 1.5rem;
+}
+
+.results h2 {
+	margin: 0 0 0.75rem;
+	font-size: 1.2rem;
+	color: #0f172a;
+}
+
+.result-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 1rem;
+}
+
+.result-card {
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 1rem;
+	background: #ffffff;
+	text-align: left;
+	cursor: pointer;
+	transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.result-card.active {
+	border-color: #0f766e;
+	box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+.result-title {
+	font-weight: 600;
+	color: #0f172a;
+}
+
+.result-sub {
+	margin-top: 0.4rem;
+	color: #64748b;
+	font-size: 0.85rem;
+}
+
+.form-card {
+	max-width: 1100px;
+	margin: 0 auto;
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 1.8rem;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 1rem 1.25rem;
+}
+
+.actions {
+	margin-top: 1.8rem;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.btn {
+	border-radius: 999px;
+	padding: 0.6rem 1.5rem;
+	border: none;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.btn.primary {
+	background: #0f766e;
+	color: #ffffff;
+}
+
+.btn.ghost {
+	background: transparent;
+	color: #0f172a;
+	border: 1px solid #cbd5f5;
+}
+
+.empty {
+	color: #64748b;
+	margin: 0;
+}
+
+@media (max-width: 720px) {
+	.edit-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
