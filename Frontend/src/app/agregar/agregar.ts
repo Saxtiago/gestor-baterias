@@ -1,3 +1,4 @@
+
 import { NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -71,6 +72,7 @@ export class Agregar {
     const diff = Math.floor((dueDate.getTime() - today.getTime()) / 86400000);
     return diff;
   }
+
 
   get estado(): string {
     const days = this.diasVencidos;
