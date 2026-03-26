@@ -63,6 +63,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: python-app
+          path: .
+
+      - name: Verify downloaded package
+        run: |
+          echo "Contenido descargado para deploy:"
+          ls -la
+          echo "--- Backend (si existe) ---"
+          ls -la Backend || true
 
       
       - name: Login to Azure
@@ -78,5 +86,5 @@ jobs:
         with:
           app-name: 'gestor-baterias-api'
           slot-name: 'Production'
-          package: Backend
+          package: .
           
