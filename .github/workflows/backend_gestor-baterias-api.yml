@@ -61,6 +61,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: python-app
+<<<<<<< HEAD
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -68,6 +69,15 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_ECF7C0E5B840463DBFD5CC209672B2E2 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_EB96AF17433D45A5B8D2E15FC05BD381 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AEBBAB178320491699BBE86649A98732 }}
+=======
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_18862564E02D46568BC4FCA45F7D50D5 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1935C137E823481B829567ADDB28BA6F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FD745C6503D04F79B39E89F414644868 }}
+>>>>>>> d8e25369f3b4164659ee315de906c9a139018535
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
