@@ -92,14 +92,14 @@ export class Agregar {
     }
 
     if (days < 0) {
-      return `Vencido hace ${Math.abs(days)} dias`;
+      return 'Vencido';
     }
 
     if (days <= 30) {
-      return `Por vencer en ${days} dias`;
+      return 'Por vencer';
     }
 
-    return `Vigente - faltan ${days} dias`;
+    return 'Vigente';
   }
 
   get tiempoDetalle(): string {
