@@ -74,6 +74,14 @@ def record_from_entity(entity: dict) -> dict:
     record['rowId'] = entity.get('RowKey', '')
     return record
 
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        "ok": True,
+        "service": "gestor-baterias-api"
+    }), 200
+
 @app.route('/')
 def index():
     return render_template('index.html')
