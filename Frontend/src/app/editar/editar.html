@@ -1,1 +1,102 @@
-<p>editar works!</p>
+<section class="edit-header">
+	<div>
+		<h1>Editar baterias</h1>
+		<p>Busca un registro y actualiza los campos necesarios.</p>
+	</div>
+	<a class="back-link" routerLink="/modulos/baterias">← Volver al menu</a>
+</section>
+
+<section class="search-bar">
+	<label class="field">
+		<span>Buscar</span>
+		<input
+			type="text"
+			[(ngModel)]="searchText"
+			(ngModelChange)="onSearchChange()"
+			placeholder="Codigo, serial, modelo..."
+		/>
+	</label>
+</section>
+
+<section class="edit-grid">
+	<section class="results">
+		<h2>Resultados</h2>
+		<div class="result-grid" *ngIf="resultados$ | async as resultados">
+			<button
+				class="result-card"
+				type="button"
+				*ngFor="let item of resultados"
+				(click)="onSelect(item)"
+				[class.active]="selectedRegistro?.rowId === item.rowId"
+			>
+				<div class="result-title">{{ item.negocio }}</div>
+				<div class="result-sub">{{ item.modelo }} - {{ item.serial }}</div>
+			</button>
+			<p class="empty" *ngIf="resultados.length === 0">Sin resultados.</p>
+		</div>
+		<p class="empty" *ngIf="isLoading">Cargando registros...</p>
+		<p class="empty" *ngIf="errorMessage">{{ errorMessage }}</p>
+		<p class="empty" *ngIf="savedMessage">{{ savedMessage }}</p>
+	</section>
+
+	<section class="form-card" *ngIf="selectedRegistro as registro">
+		<div class="form-grid">
+			<label class="field">
+				<span>COD</span>
+				<input type="text" [(ngModel)]="registro.cod" />
+			</label>
+
+			<label class="field">
+				<span>Negocio</span>
+				<input type="text" [(ngModel)]="registro.negocio" />
+			</label>
+
+			<label class="field">
+				<span>UPS Marca</span>
+				<input type="text" [(ngModel)]="registro.upsMarca" />
+			</label>
+
+			<label class="field">
+				<span>Modelo</span>
+				<input type="text" [(ngModel)]="registro.modelo" />
+			</label>
+
+			<label class="field">
+				<span>Capacidad</span>
+				<input type="text" [(ngModel)]="registro.capacidad" />
+			</label>
+
+			<label class="field">
+				<span>Serial</span>
+				<input type="text" [(ngModel)]="registro.serial" />
+			</label>
+
+			<label class="field">
+				<span>Inventario No</span>
+				<input type="text" [(ngModel)]="registro.inventarioNo" />
+			</label>
+
+			<label class="field">
+				<span>Fecha de instalacion</span>
+				<input type="date" [(ngModel)]="registro.fechaInstalacion" />
+			</label>
+
+			<label class="field">
+				<span>Referencia</span>
+				<input type="text" [(ngModel)]="registro.referencia" />
+			</label>
+
+			<label class="field">
+				<span>Cantidad</span>
+				<input type="number" min="1" [(ngModel)]="registro.cantidad" />
+			</label>
+		</div>
+
+		<div class="actions">
+			<button class="btn primary" type="button" (click)="onSave()" [disabled]="isSaving">
+				Guardar cambios
+			</button>
+			<button class="btn ghost" type="button" (click)="onReset()">Cancelar</button>
+		</div>
+	</section>
+</section>

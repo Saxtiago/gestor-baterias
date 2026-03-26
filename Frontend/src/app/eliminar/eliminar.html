@@ -1,1 +1,60 @@
-<p>eliminar works!</p>
+<section class="delete-header">
+	<div>
+		<h1>Eliminar baterias</h1>
+		<p>Busca un registro y confirma la eliminacion.</p>
+	</div>
+	<a class="back-link" routerLink="/modulos/baterias">← Volver al menu</a>
+</section>
+
+<section class="search-bar">
+	<label class="field">
+		<span>Buscar</span>
+		<input
+			type="text"
+			[(ngModel)]="searchText"
+			(ngModelChange)="onSearchChange()"
+			placeholder="Codigo, serial, modelo..."
+		/>
+	</label>
+</section>
+
+<section class="delete-grid">
+	<section class="results">
+		<h2>Resultados</h2>
+		<div class="result-grid" *ngIf="resultados$ | async as resultados">
+			<button
+				class="result-card"
+				type="button"
+				*ngFor="let item of resultados"
+				(click)="onSelect(item)"
+				[class.active]="selectedRegistro?.rowId === item.rowId"
+			>
+				<div class="result-title">{{ item.negocio }}</div>
+				<div class="result-sub">{{ item.modelo }} - {{ item.serial }}</div>
+			</button>
+			<p class="empty" *ngIf="resultados.length === 0">Sin resultados.</p>
+		</div>
+		<p class="empty" *ngIf="isLoading">Cargando registros...</p>
+		<p class="empty" *ngIf="errorMessage">{{ errorMessage }}</p>
+		<p class="empty" *ngIf="deletedMessage">{{ deletedMessage }}</p>
+	</section>
+
+	<section class="confirm-card" *ngIf="selectedRegistro as registro">
+		<h3>Confirmar eliminacion</h3>
+		<p>Estas por eliminar este registro:</p>
+		<ul>
+			<li><strong>COD:</strong> {{ registro.cod }}</li>
+			<li><strong>Negocio:</strong> {{ registro.negocio }}</li>
+			<li><strong>Modelo:</strong> {{ registro.modelo }}</li>
+			<li><strong>Serial:</strong> {{ registro.serial }}</li>
+			<li><strong>Inventario No:</strong> {{ registro.inventarioNo }}</li>
+			<li><strong>Estado:</strong> {{ registro.estado }}</li>
+		</ul>
+		<div class="actions">
+			<button class="btn danger" type="button" (click)="onDelete()" [disabled]="isDeleting">
+				Eliminar
+			</button>
+			<button class="btn ghost" type="button" (click)="onReset()">Cancelar</button>
+		</div>
+	</section>
+</section>
