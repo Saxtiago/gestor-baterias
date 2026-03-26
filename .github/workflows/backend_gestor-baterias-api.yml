@@ -4,10 +4,12 @@
 
 name: Build and deploy Python app to Azure Web App - gestor-baterias-api
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
-      - main
       - backend
   workflow_dispatch:
 
