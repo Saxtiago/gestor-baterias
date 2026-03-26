@@ -47,8 +47,7 @@
 }
 
 .results {
-	max-width: 1100px;
-	margin: 0 auto 1.5rem;
+	margin: 0;
 }
 
 .results h2 {
@@ -90,12 +89,13 @@
 }
 
 .confirm-card {
-	max-width: 1100px;
-	margin: 0 auto;
 	background: #fff1f2;
 	border-radius: 16px;
 	padding: 1.5rem;
 	border: 1px solid #fecdd3;
+	position: sticky;
+	top: 1rem;
+	align-self: start;
 }
 
 .confirm-card h3 {
@@ -140,9 +140,35 @@
 	margin: 0;
 }
 
+.status {
+	color: #0f766e;
+	font-weight: 600;
+}
+
+.status.error {
+	color: #dc2626;
+}
+
+.delete-grid {
+	max-width: 1100px;
+	margin: 0 auto 1.5rem;
+	display: grid;
+	grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);
+	gap: 1.5rem;
+	align-items: start;
+}
+
 @media (max-width: 720px) {
 	.delete-header {
 		flex-direction: column;
 		align-items: flex-start;
+	}
+
+	.delete-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.confirm-card {
+		position: static;
 	}
 }
