@@ -1,0 +1,4 @@
+flask==3.0.2
+flask-cors==4.0.0
+azure-data-tables==12.4.4
+gunicorn==22.0.0
