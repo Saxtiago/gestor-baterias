@@ -84,7 +84,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'gestor-baterias-api'
+          app-name: 'gestor-baterias-api-dcekhxfffpd8gbfs'
           slot-name: 'Production'
           package: .
           
