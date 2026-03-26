@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, shareReplay, startWith, Subject, switchMap, asyncScheduler, observeOn } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
 
 interface RegistroEditable {
-  rowId: number;
+  rowId: string;
   cod: string;
   negocio: string;
   upsMarca: string;
@@ -29,7 +30,7 @@ interface RegistroEditable {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Editar implements OnInit {
-  private readonly apiUrl = 'http://127.0.0.1:5000/api/baterias';
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
   private readonly defaultLifeMonths = 36;
   private readonly filtrosSubject = new BehaviorSubject({ searchText: '' });
   private readonly refreshSubject = new Subject<void>();
@@ -52,7 +53,7 @@ export class Editar implements OnInit {
       startWith(undefined),
       switchMap(() =>
         this.http.get<RegistroApi[]>(this.apiUrl).pipe(
-          map((data) => data.map((registro, index) => this.mapRegistro(registro, index))),
+          map((data) => data.map((registro) => this.mapRegistro(registro))),
           catchError(() => {
             this.errorMessage = 'No se pudo cargar la informacion del Excel.';
             this.cdr.markForCheck();
@@ -144,7 +145,7 @@ export class Editar implements OnInit {
     );
   }
 
-  private mapRegistro(registro: RegistroApi, rowId: number): RegistroEditable {
+  private mapRegistro(registro: RegistroApi): RegistroEditable {
     const normalizeKey = (key: string) =>
       key
         .normalize('NFD')
@@ -187,7 +188,7 @@ export class Editar implements OnInit {
     };
 
     return {
-      rowId,
+      rowId: this.getRowId(registro),
       cod: getValue(['COD', 'Cod']),
       negocio: getValue(['Negocio']),
       upsMarca: getValue(['UPS Marca', 'UPS marca', 'UPS_Marca']),
@@ -203,6 +204,11 @@ export class Editar implements OnInit {
       referencia: getValue(['REFERENCIA', 'Referencia']),
       cantidad: Number(getValue(['CANTIDAD', 'Cantidad']) || 0),
     };
+  }
+
+  private getRowId(registro: RegistroApi): string {
+    const value = registro['rowId'] ?? registro['id'] ?? registro['RowKey'];
+    return value === undefined || value === null ? '' : String(value);
   }
 
   private buildPayload(registro: RegistroEditable): Record<string, string | number> {

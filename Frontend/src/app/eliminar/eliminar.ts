@@ -4,11 +4,12 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, shareReplay, startWith, Subject, switchMap, asyncScheduler, observeOn } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
 
 interface RegistroEliminar {
-  rowId: number;
+  rowId: string;
   cod: string;
   negocio: string;
   upsMarca: string;
@@ -30,7 +31,7 @@ interface RegistroEliminar {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Eliminar implements OnInit {
-  private readonly apiUrl = 'http://127.0.0.1:5000/api/baterias';
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
   private readonly filtrosSubject = new BehaviorSubject({ searchText: '' });
   private readonly refreshSubject = new Subject<void>();
 
@@ -52,7 +53,7 @@ export class Eliminar implements OnInit {
       startWith(undefined),
       switchMap(() =>
         this.http.get<RegistroApi[]>(this.apiUrl).pipe(
-          map((data) => data.map((registro, index) => this.mapRegistro(registro, index))),
+          map((data) => data.map((registro) => this.mapRegistro(registro))),
           catchError(() => {
             this.errorMessage = 'No se pudo cargar la informacion del Excel.';
             this.cdr.markForCheck();
@@ -144,7 +145,7 @@ export class Eliminar implements OnInit {
     );
   }
 
-  private mapRegistro(registro: RegistroApi, rowId: number): RegistroEliminar {
+  private mapRegistro(registro: RegistroApi): RegistroEliminar {
     const normalizeKey = (key: string) =>
       key
         .normalize('NFD')
@@ -173,7 +174,7 @@ export class Eliminar implements OnInit {
     };
 
     return {
-      rowId,
+      rowId: this.getRowId(registro),
       cod: getValue(['COD', 'Cod']),
       negocio: getValue(['Negocio']),
       upsMarca: getValue(['UPS Marca', 'UPS marca', 'UPS_Marca']),
@@ -190,5 +191,10 @@ export class Eliminar implements OnInit {
       cantidad: getValue(['CANTIDAD', 'Cantidad']),
       estado: getValue(['ESTADO', 'Estado']),
     };
+  }
+
+  private getRowId(registro: RegistroApi): string {
+    const value = registro['rowId'] ?? registro['id'] ?? registro['RowKey'];
+    return value === undefined || value === null ? '' : String(value);
   }
 }

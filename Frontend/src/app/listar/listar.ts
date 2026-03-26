@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, catchError, finalize, of, switchMap, shareReplay, Observable, Subject, asyncScheduler, observeOn, startWith } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
 
@@ -31,7 +32,7 @@ interface RegistroListado {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Listar implements OnInit {
-  private readonly apiUrl = 'http://127.0.0.1:5000/api/baterias';
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
   private readonly filtrosSubject = new BehaviorSubject({
     searchText: '',
     estadoFilter: '',

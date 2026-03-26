@@ -5,6 +5,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-agregar',
@@ -14,7 +15,7 @@ import { finalize } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Agregar {
-  private readonly apiUrl = 'http://127.0.0.1:5000/api/baterias';
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
   private readonly defaultLifeMonths = 36;
 
   protected readonly batteryForm = new FormGroup({
