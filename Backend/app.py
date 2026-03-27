@@ -111,9 +111,13 @@ def eliminar():
 def listar_baterias():
     try:
         table_client = get_table_client()
-        entities = table_client.query_entities(
-            f"PartitionKey eq '{PARTITION_KEY}'"
-        )
+        include_all = request.args.get('all', '').strip().lower() in {'1', 'true', 'yes'}
+        if include_all:
+            entities = table_client.list_entities()
+        else:
+            entities = table_client.query_entities(
+                f"PartitionKey eq '{PARTITION_KEY}'"
+            )
         data = [record_from_entity(entity) for entity in entities]
         return jsonify(data), 200
     except Exception as e:
