@@ -3,7 +3,7 @@ import os
 import re
 import unicodedata
 import uuid
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from azure.data.tables import TableServiceClient, UpdateMode
 from azure.core.exceptions import ResourceNotFoundError
@@ -13,6 +13,7 @@ CORS(app)  # Importante para que Angular pueda consultar al Backend
 
 TABLE_NAME = os.getenv('AZURE_TABLE_NAME', 'baterias')
 STORAGE_CONNECTION_STRING = os.getenv('AZURE_STORAGE_CONNECTION_STRING', '')
+FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL', '').strip()
 PARTITION_KEY = 'baterias'
 
 COLUMNAS = [
@@ -82,30 +83,40 @@ def health_check():
         "service": "gestor-baterias-api"
     }), 200
 
+
+def redirect_to_frontend_or_api(path: str = ''):
+    if FRONTEND_BASE_URL:
+        return redirect(f"{FRONTEND_BASE_URL.rstrip('/')}{path}", code=302)
+
+    return jsonify({
+        "ok": True,
+        "message": "Backend API activo. Esta URL ya no sirve la interfaz web.",
+        "api": {
+            "health": "/api/health",
+            "baterias": "/api/baterias"
+        }
+    }), 200
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return redirect_to_frontend_or_api()
 
 @app.route('/gestion_baterias')
 def gestion_baterias():
-    # Capturamos el nombre del archivo que viene del select (opcional por ahora)
-    archivo_seleccionado = request.args.get('archivo')
-    
-    # IMPORTANTE: Aquí retornamos el HTML de la tabla de gestión
-    return render_template('gestion_baterias.html', archivo=archivo_seleccionado)
+    return redirect_to_frontend_or_api('/modulos/baterias')
 
 @app.route('/agregar')
 def agregar():
-    return render_template('agregar.html')
+    return redirect_to_frontend_or_api('/modulos/baterias/agregar')
 
 
 @app.route('/editar')
 def editar():
-    return render_template('editar.html')
+    return redirect_to_frontend_or_api('/modulos/baterias/editar')
 
 @app.route('/eliminar')
 def eliminar():
-    return render_template('eliminar.html')
+    return redirect_to_frontend_or_api('/modulos/baterias/eliminar')
     
 @app.route('/api/baterias', methods=['GET'])
 def listar_baterias():
