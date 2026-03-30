@@ -68,7 +68,8 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "host": "0.0.0.0",
-            "port": 4200
+            "port": 4200,
+            "allowedHosts": ["172.19.72.16", "localhost", "0.0.0.0"]
           },
           "configurations": {
             "production": {
