@@ -1,11 +1,13 @@
 
+import calendar
 import os
 import re
 import traceback
 import unicodedata
 import uuid
+from datetime import date, datetime, timedelta
 from typing import Any, Optional
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, send_file
 from flask_cors import CORS
 from azure.data.tables import TableServiceClient, UpdateMode
 from azure.core.exceptions import ResourceNotFoundError
@@ -155,7 +157,7 @@ def build_excel_record(payload: dict, row_key: str) -> dict[str, str]:
     record = {ROW_ID_COLUMN: row_key}
     for col in COLUMNAS:
         record[col] = normalize_payload_value(get_payload_value(payload, col))
-    return record
+    return compute_excel_fields(record)
 
 
 def find_excel_record_index(records: list[dict[str, str]], row_key: str) -> int:
@@ -185,6 +187,86 @@ def get_payload_value(payload: dict, expected_key: str):
             return payload[key]
 
     return ""
+
+
+def parse_date_string(value: str) -> Optional[date]:
+    if not value:
+        return None
+
+    value_str = str(value).strip()
+    if not value_str:
+        return None
+
+    for fmt in (
+        '%Y-%m-%d',
+        '%d/%m/%Y',
+        '%Y/%m/%d',
+        '%d-%m-%Y',
+        '%m/%d/%Y',
+        '%Y.%m.%d',
+    ):
+        try:
+            return datetime.strptime(value_str, fmt).date()
+        except ValueError:
+            continue
+
+    try:
+        return datetime.fromisoformat(value_str).date()
+    except ValueError:
+        return None
+
+
+def add_months(base_date: date, months: int) -> date:
+    month = base_date.month - 1 + months
+    year = base_date.year + month // 12
+    month = month % 12 + 1
+    day = min(base_date.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def diff_in_years_months_days(start: date, end: date) -> dict[str, int]:
+    years = end.year - start.year
+    months = end.month - start.month
+    days = end.day - start.day
+
+    if days < 0:
+        previous_month = date(end.year, end.month, 1) - timedelta(days=1)
+        days += previous_month.day
+        months -= 1
+
+    if months < 0:
+        months += 12
+        years -= 1
+
+    return {'years': years, 'months': months, 'days': days}
+
+
+def compute_excel_fields(record: dict[str, str]) -> dict[str, str]:
+    due_date = parse_date_string(record.get('FECHA DE VENCIMIENTO', ''))
+    if not due_date:
+        install_date = parse_date_string(record.get('FECHA DE INSTALACION', ''))
+        if install_date:
+            due_date = add_months(install_date, 36)
+            record['FECHA DE VENCIMIENTO'] = due_date.strftime('%Y-%m-%d')
+
+    if due_date is None:
+        return record
+
+    today = date.today()
+    diff_days = (due_date - today).days
+    record['DIAS VENCIDOS'] = str(diff_days)
+
+    if diff_days < 0:
+        record['ESTADO'] = 'Vencido'
+    elif diff_days <= 30:
+        record['ESTADO'] = 'Por vencer'
+    else:
+        record['ESTADO'] = 'Vigente'
+
+    start, end = (due_date, today) if due_date < today else (today, due_date)
+    delta = diff_in_years_months_days(start, end)
+    record['AÑOS/ MESES/ DIAS'] = f"{delta['years']} AÑOS {delta['months']} MESES {delta['days']} DIAS"
+    return record
 
 
 def build_entity(payload: dict, row_key: str) -> dict:
@@ -273,6 +355,41 @@ def listar_baterias():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Error al consultar los registros: {str(e)}"}), 500
+
+
+@app.route('/api/baterias/sync', methods=['POST'])
+def sync_baterias_excel():
+    try:
+        if using_azure_table_storage():
+            return jsonify({"error": "Sincronización de Excel no está disponible cuando se usa Azure Table Storage."}), 501
+
+        records = load_excel_records()
+        records = [compute_excel_fields(record) for record in records]
+        save_excel_records(records)
+        return jsonify({"ok": True, "mensaje": "Excel actualizado con estados y fechas."}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al sincronizar el Excel: {str(e)}"}), 500
+
+
+@app.route('/api/baterias/export', methods=['GET'])
+def export_baterias_excel():
+    try:
+        if using_azure_table_storage():
+            return jsonify({"error": "Exportación a Excel no está disponible cuando se usa Azure Table Storage."}), 501
+
+        records = load_excel_records()
+        records = [compute_excel_fields(record) for record in records]
+        save_excel_records(records)
+        return send_file(
+            EXCEL_DATA_FILE,
+            as_attachment=True,
+            download_name=os.path.basename(EXCEL_DATA_FILE),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al exportar el Excel: {str(e)}"}), 500
 
 
 @app.route('/api/baterias', methods=['POST'])
