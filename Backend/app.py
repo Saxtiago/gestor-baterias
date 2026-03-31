@@ -1,6 +1,7 @@
 
 import os
 import re
+import traceback
 import unicodedata
 import uuid
 from typing import Any, Optional
@@ -75,18 +76,34 @@ def ensure_excel_file_exists() -> None:
         workbook.save(EXCEL_DATA_FILE)
 
 
+def normalize_header(value: Optional[str]) -> str:
+    if value is None:
+        return ''
+    return str(value).strip()
+
+
 def load_excel_records() -> list[dict[str, str]]:
     ensure_excel_file_exists()
 
     workbook = openpyxl.load_workbook(EXCEL_DATA_FILE)
     sheet = workbook.active
-    headers = [str(cell.value).strip() if cell.value and cell.value is not None else '' for cell in sheet[1]]
+    headers = [normalize_header(cell.value) for cell in sheet[1]]
 
-    if ROW_ID_COLUMN not in headers:
+    if not any(headers):
+        headers = [ROW_ID_COLUMN, *COLUMNAS]
+        for column_index, header in enumerate(headers, start=1):
+            sheet.cell(row=1, column=column_index).value = header
+
+    row_id_index = next(
+        (index for index, header in enumerate(headers) if header.lower() == ROW_ID_COLUMN.lower()),
+        -1,
+    )
+
+    if row_id_index == -1:
         headers.append(ROW_ID_COLUMN)
+        row_id_index = len(headers) - 1
         sheet.cell(row=1, column=len(headers)).value = ROW_ID_COLUMN
 
-    row_id_index = headers.index(ROW_ID_COLUMN)
     rows: list[dict[str, str]] = []
     changed = False
 
@@ -233,6 +250,7 @@ def listar_baterias():
             data = load_excel_records()
         return jsonify(data), 200
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": f"Error al consultar los registros: {str(e)}"}), 500
 
 
@@ -254,6 +272,7 @@ def crear_bateria():
 
         return jsonify({"ok": True, "rowId": row_key}), 201
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": f"Error al guardar el registro: {str(e)}"}), 500
 
 
@@ -281,6 +300,7 @@ def actualizar_bateria(row_id: str):
 
         return jsonify({"ok": True, "mensaje": "Registro actualizado"}), 200
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": f"Error al actualizar el registro: {str(e)}"}), 500
 
 
@@ -306,6 +326,7 @@ def eliminar_bateria(row_id: str):
 
         return jsonify({"ok": True, "mensaje": "Registro eliminado"}), 200
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": f"Error al eliminar el registro: {str(e)}"}), 500
 
 
