@@ -25,7 +25,7 @@ import { environment } from '../environments/environment';
 
       <a class="menu-card" [href]="exportUrl" target="_blank" rel="noopener">
         <h2>Exportar Excel</h2>
-        <p>Descargar el archivo Excel y actualizar los campos de estado.</p>
+        <p>Descargar el archivo Excel</p>
       </a>
 
       <a class="menu-card" routerLink="/modulos/baterias/editar">
