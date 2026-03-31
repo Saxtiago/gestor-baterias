@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-baterias-menu',
@@ -20,6 +21,11 @@ import { RouterLink } from '@angular/router';
       <a class="menu-card" routerLink="/modulos/baterias/listar">
         <h2>Buscar / Listar</h2>
         <p>Consultar baterías registradas.</p>
+      </a>
+
+      <a class="menu-card" [href]="exportUrl" target="_blank" rel="noopener">
+        <h2>Exportar Excel</h2>
+        <p>Descargar el archivo Excel y actualizar los campos de estado.</p>
       </a>
 
       <a class="menu-card" routerLink="/modulos/baterias/editar">
@@ -95,4 +101,6 @@ import { RouterLink } from '@angular/router';
     }
   `,
 })
-export class BateriasMenuComponent {}
+export class BateriasMenuComponent {
+  protected readonly exportUrl = `${environment.apiBaseUrl?.replace(/\/$/, '') ?? ''}/api/baterias/export`;
+}

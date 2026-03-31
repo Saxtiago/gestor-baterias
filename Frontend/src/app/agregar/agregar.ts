@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Agregar {
-  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
+  private readonly apiUrl = `${environment.apiBaseUrl?.replace(/\/$/, '') ?? ''}/api/baterias`;
   private readonly defaultLifeMonths = 36;
 
   protected readonly batteryForm = new FormGroup({
@@ -138,8 +138,10 @@ export class Agregar {
         this.savedMessage = 'Registro guardado.';
         this.onReset();
       },
-      error: () => {
-        this.errorMessage = 'No se pudo guardar el registro.';
+      error: (err) => {
+        console.error('Error al guardar registro', err);
+        const backendMessage = err?.error?.error || err?.error?.message || err?.message || 'No se pudo guardar el registro.';
+        this.errorMessage = `No se pudo guardar el registro. ${backendMessage}`;
       },
     });
   }
