@@ -143,13 +143,18 @@ def save_excel_records(records: list[dict[str, str]]) -> None:
     for record in records:
         sheet.append([record.get(header, '') for header in headers])
 
-    workbook.save(EXCEL_DATA_FILE)
+    try:
+        workbook.save(EXCEL_DATA_FILE)
+    except PermissionError as error:
+        raise IOError(
+            f"No se pudo guardar el archivo Excel '{EXCEL_DATA_FILE}'. Ciérrelo si está abierto en otra aplicación."
+        ) from error
 
 
 def build_excel_record(payload: dict, row_key: str) -> dict[str, str]:
     record = {ROW_ID_COLUMN: row_key}
     for col in COLUMNAS:
-        record[col] = normalize_payload_value(payload.get(col, ""))
+        record[col] = normalize_payload_value(get_payload_value(payload, col))
     return record
 
 
@@ -166,11 +171,27 @@ def normalize_payload_value(value):
     return str(value)
 
 
+def get_payload_value(payload: dict, expected_key: str):
+    if expected_key in payload:
+        return payload[expected_key]
+
+    normalized_key = normalize_key(expected_key)
+    for key in payload:
+        if key == expected_key:
+            return payload[key]
+        if normalize_key(str(key)) == normalized_key:
+            return payload[key]
+        if str(key).strip().lower() == expected_key.strip().lower():
+            return payload[key]
+
+    return ""
+
+
 def build_entity(payload: dict, row_key: str) -> dict:
     entity = {'PartitionKey': PARTITION_KEY, 'RowKey': row_key}
     for col in COLUMNAS:
         column_key = COLUMN_KEY_MAP[col]
-        entity[column_key] = normalize_payload_value(payload.get(col, ""))
+        entity[column_key] = normalize_payload_value(get_payload_value(payload, col))
     return entity
 
 
@@ -258,6 +279,9 @@ def listar_baterias():
 def crear_bateria():
     try:
         payload = request.get_json(silent=True) or {}
+        if not payload:
+            return jsonify({"error": "Carga JSON inválida o cuerpo vacío."}), 400
+
         row_key = uuid.uuid4().hex
 
         if using_azure_table_storage():
