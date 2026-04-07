@@ -32,7 +32,7 @@ interface RegistroListado {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Listar implements OnInit {
-  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias?all=1`;
   private readonly filtrosSubject = new BehaviorSubject({
     searchText: '',
     estadoFilter: '',
