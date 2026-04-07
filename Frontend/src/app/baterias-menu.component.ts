@@ -100,10 +100,10 @@ interface DashboardItem {
       <aside class="attention-card">
         <div class="attention-head">
           <h2>Atención hoy</h2>
-          <a routerLink="/modulos/baterias/listar" [queryParams]="{ estados: 'Vencido,Por vencer' }">Ver en listado</a>
+          <a routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">Ver en listado</a>
         </div>
         <p class="empty" *ngIf="isLoadingDashboard">Cargando indicadores...</p>
-        <p class="empty" *ngIf="!isLoadingDashboard && attentionItems.length === 0">Sin alertas prioritarias.</p>
+        <p class="empty" *ngIf="!isLoadingDashboard && attentionItems.length === 0">Sin baterias por vencer.</p>
         <div class="attention-list" *ngIf="attentionItems.length > 0">
           <article class="attention-item" *ngFor="let item of attentionItems">
             <div>
@@ -481,10 +481,8 @@ export class BateriasMenuComponent implements OnInit {
         this.totalPorVencer = mapped.filter((item) => item.estado === 'Por vencer').length;
         this.totalVigentes = mapped.filter((item) => item.estado === 'Vigente').length;
 
-        const prioridad = { 'Vencido': 0, 'Por vencer': 1, 'Vigente': 2 } as const;
         this.attentionItems = mapped
-          .filter((item) => item.estado === 'Vencido' || item.estado === 'Por vencer')
-          .sort((a, b) => prioridad[a.estado as keyof typeof prioridad] - prioridad[b.estado as keyof typeof prioridad])
+          .filter((item) => item.estado === 'Por vencer')
           .slice(0, 6);
       },
       error: () => {
