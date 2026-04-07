@@ -5,16 +5,10 @@ import re
 import traceback
 import unicodedata
 import uuid
-<<<<<<< HEAD
 from datetime import date, datetime
 from calendar import monthrange
 from typing import Dict, Optional
 from flask import Flask, jsonify, request, render_template
-=======
-from datetime import date, datetime, timedelta
-from typing import Any, Optional
-from flask import Flask, jsonify, request, redirect, send_file
->>>>>>> d03e570f8baed1fa475a934dd00a677e417183ca
 from flask_cors import CORS
 from azure.data.tables import TableServiceClient, UpdateMode
 from azure.core.exceptions import ResourceNotFoundError
@@ -290,7 +284,7 @@ def record_from_entity(entity: dict) -> dict:
     return record
 
 
-<<<<<<< HEAD
+
 def parse_date(value: str) -> Optional[date]:
     if not value:
         return None
@@ -367,39 +361,7 @@ def build_computed_values(fecha_instalacion_raw: str) -> Dict[str, str]:
         'DIAS VENCIDOS': str(diff_days),
         'AÑOS/ MESES/ DIAS': compute_tiempo_detalle(start, end),
     }
-=======
-@app.route('/api/health', methods=['GET'])
-def health_check():
-    return jsonify({
-        "ok": True,
-        "service": "gestor-baterias-api"
-    }), 200
 
-
-def get_frontend_base_url() -> Optional[str]:
-    if FRONTEND_BASE_URL:
-        return FRONTEND_BASE_URL.rstrip('/')
-
-    if not using_azure_table_storage():
-        return 'http://172.19.72.16:4200'
-
-    return None
-
-
-def redirect_to_frontend_or_api(path: str = ''):
-    frontend_url = get_frontend_base_url()
-    if frontend_url:
-        return redirect(f"{frontend_url}{path}", code=302)
-
-    return jsonify({
-        "ok": True,
-        "message": "Backend API activo. Esta URL ya no sirve la interfaz web.",
-        "api": {
-            "health": "/api/health",
-            "baterias": "/api/baterias"
-        }
-    }), 200
->>>>>>> d03e570f8baed1fa475a934dd00a677e417183ca
 
 @app.route('/')
 def index():
@@ -444,7 +406,7 @@ def listar_baterias():
 
 
 @app.route('/api/baterias/sync', methods=['POST'])
-<<<<<<< HEAD
+
 def sincronizar_baterias():
     try:
         table_client = get_table_client()
@@ -480,40 +442,7 @@ def sincronizar_baterias():
         }), 200
     except Exception as e:
         return jsonify({"error": f"Error al sincronizar los registros: {str(e)}"}), 500
-=======
-def sync_baterias_excel():
-    try:
-        if using_azure_table_storage():
-            return jsonify({"error": "Sincronización de Excel no está disponible cuando se usa Azure Table Storage."}), 501
 
-        records = load_excel_records()
-        records = [compute_excel_fields(record) for record in records]
-        save_excel_records(records)
-        return jsonify({"ok": True, "mensaje": "Excel actualizado con estados y fechas."}), 200
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": f"Error al sincronizar el Excel: {str(e)}"}), 500
-
-
-@app.route('/api/baterias/export', methods=['GET'])
-def export_baterias_excel():
-    try:
-        if using_azure_table_storage():
-            return jsonify({"error": "Exportación a Excel no está disponible cuando se usa Azure Table Storage."}), 501
-
-        records = load_excel_records()
-        records = [compute_excel_fields(record) for record in records]
-        save_excel_records(records)
-        return send_file(
-            EXCEL_DATA_FILE,
-            as_attachment=True,
-            download_name=os.path.basename(EXCEL_DATA_FILE),
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        )
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": f"Error al exportar el Excel: {str(e)}"}), 500
->>>>>>> d03e570f8baed1fa475a934dd00a677e417183ca
 
 
 @app.route('/api/baterias', methods=['POST'])

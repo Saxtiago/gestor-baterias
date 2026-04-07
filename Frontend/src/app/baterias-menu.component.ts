@@ -2,10 +2,9 @@ import { NgIf } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-<<<<<<< HEAD
+
 import { finalize } from 'rxjs';
-=======
->>>>>>> d03e570f8baed1fa475a934dd00a677e417183ca
+
 import { environment } from '../environments/environment';
 
 @Component({
@@ -119,8 +118,8 @@ import { environment } from '../environments/environment';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-<<<<<<< HEAD
 export class BateriasMenuComponent implements OnInit {
+  protected readonly exportUrl = `${environment.apiBaseUrl}/api/baterias/export`;
   private readonly syncUrl = `${environment.apiBaseUrl}/api/baterias/sync`;
 
   protected isSyncing = false;
@@ -152,8 +151,4 @@ export class BateriasMenuComponent implements OnInit {
       },
     });
   }
-=======
-export class BateriasMenuComponent {
-  protected readonly exportUrl = `${environment.apiBaseUrl?.replace(/\/$/, '') ?? ''}/api/baterias/export`;
->>>>>>> d03e570f8baed1fa475a934dd00a677e417183ca
 }
