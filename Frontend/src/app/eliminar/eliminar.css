@@ -29,29 +29,6 @@
 	margin: 0 auto 1.5rem;
 }
 
-.quick-actions {
-	max-width: 980px;
-	margin: 0 auto 1rem;
-	display: flex;
-	gap: 0.6rem;
-	flex-wrap: wrap;
-	position: sticky;
-	top: 0.75rem;
-	z-index: 3;
-}
-
-.chip {
-	border: 1px solid #cbd5f5;
-	border-radius: 999px;
-	padding: 0.42rem 0.9rem;
-	text-decoration: none;
-	background: #ffffff;
-	color: #0f172a;
-	font-weight: 600;
-	font-size: 0.85rem;
-	cursor: pointer;
-}
-
 .quick-filters {
 	max-width: 980px;
 	margin: 0 auto 0.9rem;
