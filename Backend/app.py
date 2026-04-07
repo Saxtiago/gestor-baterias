@@ -506,12 +506,56 @@ def sincronizar_baterias():
 @app.route('/api/baterias/export', methods=['GET'])
 def exportar_baterias_excel():
     try:
+        filtro_estado_raw = (request.args.get('estado') or 'all').strip()
+
+        def normalize_estado(value: str) -> str:
+            normalized = unicodedata.normalize('NFD', value)
+            normalized = ''.join(ch for ch in normalized if unicodedata.category(ch) != 'Mn')
+            normalized = normalized.strip().lower()
+            return re.sub(r'\s+', ' ', normalized)
+
+        def matches_estado_filter(record: dict) -> bool:
+            normalized_filter = normalize_estado(filtro_estado_raw)
+            if normalized_filter in {'', 'all', 'todo', 'todos'}:
+                return True
+
+            estado = str(record.get('ESTADO', '')).strip()
+            normalized_estado = normalize_estado(estado)
+
+            aliases = {
+                'vigente': {'vigente'},
+                'por vencer': {'por vencer', 'porvencer'},
+                'vencido': {'vencido', 'vencidos'},
+            }
+
+            for canonical, options in aliases.items():
+                if normalized_filter in options:
+                    return normalized_estado == canonical
+
+            return normalized_estado == normalized_filter
+
+        def build_export_file_name() -> str:
+            normalized_filter = normalize_estado(filtro_estado_raw)
+            suffix_map = {
+                'all': 'todo',
+                'todo': 'todo',
+                'todos': 'todo',
+                'vigente': 'vigente',
+                'por vencer': 'por_vencer',
+                'porvencer': 'por_vencer',
+                'vencido': 'vencido',
+                'vencidos': 'vencido',
+            }
+            suffix = suffix_map.get(normalized_filter, 'filtro')
+            return f'baterias_export_{suffix}.xlsx'
+
         if using_azure_table_storage():
             table_client = get_table_client()
             entities = list(table_client.query_entities(
                 f"PartitionKey eq '{PARTITION_KEY}'"
             ))
             records = [record_from_entity(entity) for entity in entities]
+            records = [record for record in records if matches_estado_filter(record)]
 
             workbook = openpyxl.Workbook()
             sheet = workbook.active
@@ -543,17 +587,46 @@ def exportar_baterias_excel():
             return send_file(
                 output,
                 as_attachment=True,
-                download_name='baterias_export.xlsx',
+                download_name=build_export_file_name(),
                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             )
 
         records = load_excel_records()
         updated_records = [compute_excel_fields(dict(record)) for record in records]
         save_excel_records(updated_records)
+        filtered_records = [record for record in updated_records if matches_estado_filter(record)]
+
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        headers = [*COLUMNAS, ROW_ID_COLUMN]
+        sheet.append(headers)
+
+        for record in filtered_records:
+            sheet.append([
+                record.get('COD', ''),
+                record.get('Negocio', ''),
+                record.get('UPS Marca', ''),
+                record.get('Modelo', ''),
+                record.get('Capacidad', ''),
+                record.get('Serial', ''),
+                record.get('Inventario No', ''),
+                record.get('FECHA DE INSTALACION', ''),
+                record.get('REFERENCIA', ''),
+                record.get('CANTIDAD', ''),
+                record.get('FECHA DE VENCIMIENTO', ''),
+                record.get('ESTADO', ''),
+                record.get('DIAS VENCIDOS', ''),
+                record.get('AÑOS/ MESES/ DIAS', ''),
+                record.get('rowId', ''),
+            ])
+
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
         return send_file(
-            EXCEL_DATA_FILE,
+            output,
             as_attachment=True,
-            download_name=os.path.basename(EXCEL_DATA_FILE),
+            download_name=build_export_file_name(),
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
     except Exception as e:

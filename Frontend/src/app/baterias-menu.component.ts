@@ -1,6 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -17,7 +18,7 @@ interface DashboardItem {
 
 @Component({
   selector: 'app-baterias-menu',
-  imports: [NgFor, NgIf, RouterLink, HttpClientModule],
+  imports: [FormsModule, NgFor, NgIf, RouterLink, HttpClientModule],
   template: `
     <section class="view-header">
       <h1>Gestión de Baterías</h1>
@@ -72,10 +73,17 @@ interface DashboardItem {
             <p>Consultar baterías registradas.</p>
           </a>
 
-          <a class="menu-card" [href]="exportUrl" target="_blank" rel="noopener">
+          <div class="menu-card export-card">
             <h2>Exportar Excel</h2>
-            <p>Descargar el archivo Excel</p>
-          </a>
+            <p>Descargar por tipo: todo, vigente, por vencer o vencido.</p>
+            <label class="field-inline">
+              <span>Tipo de exportacion</span>
+              <select [(ngModel)]="exportFilter">
+                <option *ngFor="let option of exportOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+            </label>
+            <a class="btn-export" [href]="getExportUrl()" target="_blank" rel="noopener">Descargar Excel</a>
+          </div>
 
           <a class="menu-card" routerLink="/modulos/baterias/editar">
             <h2>Editar</h2>
@@ -337,6 +345,44 @@ interface DashboardItem {
       line-height: 1.4;
     }
 
+    .export-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .field-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      color: #334155;
+      font-size: 0.85rem;
+    }
+
+    .field-inline select {
+      border: 1px solid #cbd5f5;
+      border-radius: 10px;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.9rem;
+      background: #ffffff;
+      color: #0f172a;
+      outline: none;
+    }
+
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border: 1px solid #cbd5f5;
+      border-radius: 999px;
+      padding: 0.5rem 0.9rem;
+      color: #0f172a;
+      font-weight: 600;
+      background: #f8fafc;
+      width: fit-content;
+    }
+
     .menu-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
@@ -357,7 +403,7 @@ interface DashboardItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BateriasMenuComponent implements OnInit {
-  protected readonly exportUrl = `${environment.apiBaseUrl}/api/baterias/export`;
+  protected readonly exportBaseUrl = `${environment.apiBaseUrl}/api/baterias/export`;
   private readonly listUrl = `${environment.apiBaseUrl}/api/baterias?all=1`;
   private readonly syncUrl = `${environment.apiBaseUrl}/api/baterias/sync`;
 
@@ -369,6 +415,13 @@ export class BateriasMenuComponent implements OnInit {
   protected totalPorVencer = 0;
   protected totalVigentes = 0;
   protected attentionItems: DashboardItem[] = [];
+  protected exportFilter = 'all';
+  protected readonly exportOptions = [
+    { value: 'all', label: 'Todo' },
+    { value: 'vigente', label: 'Solo vigentes' },
+    { value: 'por vencer', label: 'Solo por vencer' },
+    { value: 'vencido', label: 'Solo vencidos' },
+  ];
 
   constructor(
     private readonly http: HttpClient,
@@ -396,6 +449,11 @@ export class BateriasMenuComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  protected getExportUrl(): string {
+    const estado = encodeURIComponent(this.exportFilter || 'all');
+    return `${this.exportBaseUrl}?estado=${estado}`;
   }
 
   private loadDashboard(): void {
