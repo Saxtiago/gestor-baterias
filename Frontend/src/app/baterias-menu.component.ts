@@ -156,8 +156,13 @@ interface DashboardItem {
     .menu-grid {
       margin: 0.85rem 0 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-areas:
+        'agregar listar exportar'
+        'editar eliminar exportar';
+      grid-auto-rows: minmax(180px, auto);
       gap: 0.8rem;
+      align-items: stretch;
     }
 
     .stats-grid {
@@ -294,6 +299,27 @@ interface DashboardItem {
       border-radius: 12px;
       padding: 0.9rem;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      min-height: 100%;
+    }
+
+    .menu-grid > .menu-card:nth-child(1) {
+      grid-area: agregar;
+    }
+
+    .menu-grid > .menu-card:nth-child(2) {
+      grid-area: listar;
+    }
+
+    .menu-grid > .menu-card.export-card {
+      grid-area: exportar;
+    }
+
+    .menu-grid > .menu-card:nth-child(4) {
+      grid-area: editar;
+    }
+
+    .menu-grid > .menu-card:nth-child(5) {
+      grid-area: eliminar;
     }
 
     .menu-card h2 {
@@ -313,6 +339,7 @@ interface DashboardItem {
       display: flex;
       flex-direction: column;
       gap: 0.7rem;
+      justify-content: space-between;
     }
 
     .field-inline {
@@ -358,10 +385,30 @@ interface DashboardItem {
         grid-template-columns: 1fr;
       }
 
+      .menu-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          'agregar listar'
+          'exportar exportar'
+          'editar eliminar';
+      }
+
       .attention-card {
         position: static;
         max-height: none;
         margin-top: 0.5rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          'agregar'
+          'listar'
+          'exportar'
+          'editar'
+          'eliminar';
       }
     }
   `,
