@@ -1,5 +1,5 @@
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -22,6 +22,12 @@ interface RegistroEditable {
   cantidad: number;
 }
 
+interface ChangeItem {
+  label: string;
+  before: string;
+  after: string;
+}
+
 @Component({
   selector: 'app-editar',
   imports: [AsyncPipe, FormsModule, NgFor, NgIf, RouterLink, HttpClientModule],
@@ -31,12 +37,14 @@ interface RegistroEditable {
 })
 export class Editar implements OnInit {
   private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
+  private readonly exportBaseUrl = `${environment.apiBaseUrl}/api/baterias/export`;
   private readonly defaultLifeMonths = 36;
   private readonly filtrosSubject = new BehaviorSubject({ searchText: '' });
   private readonly refreshSubject = new Subject<void>();
 
   protected searchText = '';
   protected selectedRegistro: RegistroEditable | null = null;
+  protected originalRegistro: RegistroEditable | null = null;
   protected isLoading = false;
   protected isSaving = false;
   protected errorMessage = '';
@@ -84,11 +92,34 @@ export class Editar implements OnInit {
     setTimeout(() => this.fetchRegistros(), 0);
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.hasUnsavedChanges) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
   fetchRegistros(): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.cdr.markForCheck();
     this.refreshSubject.next();
+  }
+
+  onRefresh(): void {
+    this.fetchRegistros();
+  }
+
+  onClearSearch(): void {
+    this.searchText = '';
+    this.onSearchChange();
+  }
+
+  get exportUrl(): string {
+    return `${this.exportBaseUrl}?estado=all`;
   }
 
   onSearchChange(): void {
@@ -97,11 +128,20 @@ export class Editar implements OnInit {
 
   onSelect(registro: RegistroEditable): void {
     this.savedMessage = '';
+    this.errorMessage = '';
     this.selectedRegistro = { ...registro };
+    this.originalRegistro = { ...registro };
   }
 
   onSave(): void {
     if (!this.selectedRegistro) {
+      return;
+    }
+
+    if (!this.hasUnsavedChanges) {
+      this.savedMessage = 'No hay cambios por guardar.';
+      this.errorMessage = '';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -119,6 +159,7 @@ export class Editar implements OnInit {
     ).subscribe({
       next: () => {
         this.savedMessage = 'Registro actualizado.';
+        this.originalRegistro = this.selectedRegistro ? { ...this.selectedRegistro } : null;
         this.fetchRegistros();
       },
       error: () => {
@@ -128,8 +169,60 @@ export class Editar implements OnInit {
   }
 
   onReset(): void {
+    if (this.hasUnsavedChanges) {
+      const shouldDiscard = window.confirm('Hay cambios sin guardar. ¿Deseas descartarlos?');
+      if (!shouldDiscard) {
+        return;
+      }
+    }
+
     this.selectedRegistro = null;
+    this.originalRegistro = null;
     this.savedMessage = '';
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+  }
+
+  get hasUnsavedChanges(): boolean {
+    if (!this.selectedRegistro || !this.originalRegistro) {
+      return false;
+    }
+
+    return this.getChangeSummary().length > 0;
+  }
+
+  get changeSummary(): ChangeItem[] {
+    return this.getChangeSummary();
+  }
+
+  private getChangeSummary(): ChangeItem[] {
+    if (!this.selectedRegistro || !this.originalRegistro) {
+      return [];
+    }
+
+    const fields: Array<{ key: keyof RegistroEditable; label: string }> = [
+      { key: 'cod', label: 'COD' },
+      { key: 'negocio', label: 'Negocio' },
+      { key: 'upsMarca', label: 'UPS Marca' },
+      { key: 'modelo', label: 'Modelo' },
+      { key: 'capacidad', label: 'Capacidad' },
+      { key: 'serial', label: 'Serial' },
+      { key: 'inventarioNo', label: 'Inventario No' },
+      { key: 'referencia', label: 'Referencia' },
+      { key: 'cantidad', label: 'Cantidad' },
+    ];
+
+    return fields
+      .filter((field) => {
+        const before = String(this.originalRegistro?.[field.key] ?? '').trim();
+        const after = String(this.selectedRegistro?.[field.key] ?? '').trim();
+        return before !== after;
+      })
+      .map((field) => ({
+        label: field.label,
+        before: String(this.originalRegistro?.[field.key] ?? ''),
+        after: String(this.selectedRegistro?.[field.key] ?? ''),
+      }));
   }
 
   private applyFilters(registros: RegistroEditable[], searchText: string): RegistroEditable[] {

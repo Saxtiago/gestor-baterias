@@ -7,6 +7,8 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+type RegistroApi = Record<string, string | number>;
+
 @Component({
   selector: 'app-agregar',
   imports: [HttpClientModule, NgIf, ReactiveFormsModule, RouterLink],
@@ -16,7 +18,9 @@ import { environment } from '../../environments/environment';
 })
 export class Agregar {
   private readonly apiUrl = `${environment.apiBaseUrl?.replace(/\/$/, '') ?? ''}/api/baterias`;
+  private readonly exportBaseUrl = `${environment.apiBaseUrl}/api/baterias/export`;
   private readonly defaultLifeMonths = 36;
+  private existingSerials = new Set<string>();
 
   protected readonly batteryForm = new FormGroup({
     cod: new FormControl('', {
@@ -63,11 +67,28 @@ export class Agregar {
   protected savedMessage = '';
   protected errorMessage = '';
   protected isSaving = false;
+  protected isSavingAndContinue = false;
 
   constructor(
     private readonly http: HttpClient,
     private readonly cdr: ChangeDetectorRef,
-  ) {}
+  ) {
+    this.loadExistingSerials();
+  }
+
+  get exportUrl(): string {
+    return `${this.exportBaseUrl}?estado=all`;
+  }
+
+  get duplicateSerialWarning(): string {
+    const serial = this.batteryForm.controls.serial.value.trim().toLowerCase();
+    if (!serial) {
+      return '';
+    }
+    return this.existingSerials.has(serial)
+      ? 'Este serial ya existe en el inventario. Verifica antes de guardar.'
+      : '';
+  }
 
   get fechaVencimiento(): string {
     const dueDate = this.getDueDate();
@@ -117,6 +138,18 @@ export class Agregar {
   }
 
   onSubmit(): void {
+    this.submitWithMode(false);
+  }
+
+  onSubmitAndContinue(): void {
+    this.submitWithMode(true);
+  }
+
+  onClearForm(): void {
+    this.onReset();
+  }
+
+  private submitWithMode(keepForm: boolean): void {
     this.savedMessage = '';
     this.errorMessage = '';
     if (this.batteryForm.invalid) {
@@ -124,18 +157,39 @@ export class Agregar {
       return;
     }
 
-    this.isSaving = true;
+    if (this.duplicateSerialWarning) {
+      this.errorMessage = this.duplicateSerialWarning;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.isSaving = !keepForm;
+    this.isSavingAndContinue = keepForm;
     this.cdr.markForCheck();
     const payload = this.buildPayload();
+    const serialSaved = this.batteryForm.controls.serial.value.trim().toLowerCase();
 
     this.http.post(this.apiUrl, payload).pipe(
       finalize(() => {
         this.isSaving = false;
+        this.isSavingAndContinue = false;
         this.cdr.markForCheck();
       }),
     ).subscribe({
       next: () => {
-        this.savedMessage = 'Registro guardado.';
+        this.savedMessage = keepForm
+          ? 'Registro guardado. Puedes agregar otro.'
+          : 'Registro guardado.';
+
+        if (serialSaved) {
+          this.existingSerials.add(serialSaved);
+        }
+
+        if (keepForm) {
+          this.resetForNextEntry();
+          return;
+        }
+
         this.onReset();
       },
       error: (err) => {
@@ -161,6 +215,52 @@ export class Agregar {
     });
     this.savedMessage = '';
     this.errorMessage = '';
+  }
+
+  onRefreshData(): void {
+    this.loadExistingSerials();
+  }
+
+  private resetForNextEntry(): void {
+    const current = this.batteryForm.getRawValue();
+    this.batteryForm.reset({
+      cod: '',
+      negocio: current.negocio,
+      upsMarca: current.upsMarca,
+      modelo: current.modelo,
+      capacidad: current.capacidad,
+      serial: '',
+      inventarioNo: '',
+      fechaInstalacion: '',
+      referencia: current.referencia,
+      cantidad: 1,
+    });
+    this.errorMessage = '';
+  }
+
+  private loadExistingSerials(): void {
+    this.http.get<RegistroApi[]>(`${this.apiUrl}?all=1`).subscribe({
+      next: (rows) => {
+        const next = new Set<string>();
+        rows.forEach((row) => {
+          const serial = this.getSerialFromRow(row).trim().toLowerCase();
+          if (serial) {
+            next.add(serial);
+          }
+        });
+        this.existingSerials = next;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.existingSerials = new Set<string>();
+      },
+    });
+  }
+
+  private getSerialFromRow(row: RegistroApi): string {
+    const entries = Object.entries(row);
+    const matched = entries.find(([key]) => key.toLowerCase().includes('serial'));
+    return matched ? String(matched[1] ?? '') : '';
   }
 
   private buildPayload(): Record<string, string | number> {

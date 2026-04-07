@@ -32,13 +32,17 @@ interface RegistroEliminar {
 })
 export class Eliminar implements OnInit {
   private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias`;
+  private readonly exportBaseUrl = `${environment.apiBaseUrl}/api/baterias/export`;
   private readonly filtrosSubject = new BehaviorSubject({ searchText: '' });
   private readonly refreshSubject = new Subject<void>();
 
   protected searchText = '';
+  protected estadoFilter = '';
   protected selectedRegistro: RegistroEliminar | null = null;
   protected isLoading = false;
   protected isDeleting = false;
+  protected requiresDeleteConfirmation = false;
+  protected confirmText = '';
   protected errorMessage = '';
   protected deletedMessage = '';
 
@@ -84,6 +88,25 @@ export class Eliminar implements OnInit {
     setTimeout(() => this.fetchRegistros(), 0);
   }
 
+  get exportUrl(): string {
+    const estado = this.estadoFilter || 'all';
+    return `${this.exportBaseUrl}?estado=${encodeURIComponent(estado)}`;
+  }
+
+  setEstadoFilter(estado: string): void {
+    this.estadoFilter = estado;
+    this.cdr.markForCheck();
+  }
+
+  onRefresh(): void {
+    this.fetchRegistros();
+  }
+
+  onClearSearch(): void {
+    this.searchText = '';
+    this.onSearchChange();
+  }
+
   fetchRegistros(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -97,11 +120,29 @@ export class Eliminar implements OnInit {
 
   onSelect(registro: RegistroEliminar): void {
     this.deletedMessage = '';
+    this.errorMessage = '';
+    this.confirmText = '';
+    this.requiresDeleteConfirmation = false;
     this.selectedRegistro = { ...registro };
   }
 
   onDelete(): void {
     if (!this.selectedRegistro) {
+      return;
+    }
+
+    if (!this.requiresDeleteConfirmation) {
+      this.requiresDeleteConfirmation = true;
+      this.errorMessage = '';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const expected = (this.selectedRegistro.serial || this.selectedRegistro.cod).trim().toLowerCase();
+    const typed = this.confirmText.trim().toLowerCase();
+    if (!typed || typed !== expected) {
+      this.errorMessage = 'Confirmacion invalida. Escribe exactamente el Serial (o COD si no hay Serial).';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -119,6 +160,8 @@ export class Eliminar implements OnInit {
       next: () => {
         this.deletedMessage = 'Registro eliminado.';
         this.selectedRegistro = null;
+        this.confirmText = '';
+        this.requiresDeleteConfirmation = false;
         this.fetchRegistros();
       },
       error: () => {
@@ -130,19 +173,27 @@ export class Eliminar implements OnInit {
   onReset(): void {
     this.selectedRegistro = null;
     this.deletedMessage = '';
+    this.errorMessage = '';
+    this.confirmText = '';
+    this.requiresDeleteConfirmation = false;
   }
 
   private applyFilters(registros: RegistroEliminar[], searchText: string): RegistroEliminar[] {
     const texto = searchText.trim().toLowerCase();
-    if (!texto) {
-      return registros;
-    }
+    return registros.filter((registro) => {
+      const estadoOk = !this.estadoFilter || registro.estado === this.estadoFilter;
+      if (!estadoOk) {
+        return false;
+      }
 
-    return registros.filter((registro) =>
-      Object.values(registro).some((value) =>
+      if (!texto) {
+        return true;
+      }
+
+      return Object.values(registro).some((value) =>
         String(value).toLowerCase().includes(texto),
-      ),
-    );
+      );
+    });
   }
 
   private mapRegistro(registro: RegistroApi): RegistroEliminar {

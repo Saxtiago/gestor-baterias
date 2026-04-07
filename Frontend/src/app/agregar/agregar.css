@@ -1,5 +1,5 @@
 .form-header {
-	max-width: 980px;
+	max-width: 900px;
 	margin: 0 auto 1.5rem;
 	display: flex;
 	align-items: center;
@@ -24,12 +24,56 @@
 	font-weight: 600;
 }
 
+.quick-actions {
+	max-width: 900px;
+	margin: 0 auto 1rem;
+	display: flex;
+	gap: 0.6rem;
+	flex-wrap: wrap;
+	position: sticky;
+	top: 0.75rem;
+	z-index: 3;
+}
+
+.chip {
+	border: 1px solid #cbd5f5;
+	border-radius: 999px;
+	padding: 0.42rem 0.9rem;
+	text-decoration: none;
+	background: #ffffff;
+	color: #0f172a;
+	font-weight: 600;
+	font-size: 0.85rem;
+	cursor: pointer;
+}
+
+.notice {
+	max-width: 900px;
+	margin: 0 auto 0.8rem;
+	border-radius: 10px;
+	padding: 0.6rem 0.8rem;
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.notice.success {
+	background: #ecfdf5;
+	border: 1px solid #bbf7d0;
+	color: #166534;
+}
+
+.notice.error {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #991b1b;
+}
+
 .form-card {
-	max-width: 980px;
+	max-width: 900px;
 	margin: 0 auto;
 	background: #ffffff;
 	border-radius: 16px;
-	padding: 1.8rem;
+	padding: 1.25rem;
 	box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 	border: 1px solid #e2e8f0;
 }
@@ -37,13 +81,13 @@
 .form-grid,
 .computed-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-	gap: 1rem 1.25rem;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 0.8rem 1rem;
 }
 
 .computed-grid {
-	margin-top: 1.5rem;
-	padding-top: 1.5rem;
+	margin-top: 1.1rem;
+	padding-top: 1rem;
 	border-top: 1px dashed #e2e8f0;
 }
 
@@ -75,7 +119,7 @@
 }
 
 .actions {
-	margin-top: 1.8rem;
+	margin-top: 1.2rem;
 	display: flex;
 	align-items: center;
 	gap: 1rem;
@@ -93,6 +137,10 @@
 .btn.primary {
 	background: #0f766e;
 	color: #ffffff;
+}
+
+.btn.primary.alt {
+	background: #0f172a;
 }
 
 .btn.ghost {

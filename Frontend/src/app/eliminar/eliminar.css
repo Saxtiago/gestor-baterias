@@ -1,5 +1,5 @@
 .delete-header {
-	max-width: 1100px;
+	max-width: 980px;
 	margin: 0 auto 1.5rem;
 	display: flex;
 	align-items: center;
@@ -25,8 +25,88 @@
 }
 
 .search-bar {
-	max-width: 1100px;
+	max-width: 980px;
 	margin: 0 auto 1.5rem;
+}
+
+.quick-actions {
+	max-width: 980px;
+	margin: 0 auto 1rem;
+	display: flex;
+	gap: 0.6rem;
+	flex-wrap: wrap;
+	position: sticky;
+	top: 0.75rem;
+	z-index: 3;
+}
+
+.chip {
+	border: 1px solid #cbd5f5;
+	border-radius: 999px;
+	padding: 0.42rem 0.9rem;
+	text-decoration: none;
+	background: #ffffff;
+	color: #0f172a;
+	font-weight: 600;
+	font-size: 0.85rem;
+	cursor: pointer;
+}
+
+.quick-filters {
+	max-width: 980px;
+	margin: 0 auto 0.9rem;
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.filter-chip {
+	border: 1px solid #cbd5f5;
+	border-radius: 999px;
+	padding: 0.32rem 0.75rem;
+	background: #fff;
+	color: #334155;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.filter-chip.active {
+	border-color: #0f766e;
+	background: #ecfdf5;
+	color: #166534;
+}
+
+.filter-chip.warning {
+	border-color: #fde68a;
+	background: #fffbeb;
+	color: #92400e;
+}
+
+.filter-chip.danger {
+	border-color: #fecaca;
+	background: #fef2f2;
+	color: #991b1b;
+}
+
+.notice {
+	max-width: 980px;
+	margin: 0 auto 0.8rem;
+	border-radius: 10px;
+	padding: 0.6rem 0.8rem;
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.notice.success {
+	background: #ecfdf5;
+	border: 1px solid #bbf7d0;
+	color: #166534;
+}
+
+.notice.error {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #991b1b;
 }
 
 .field {
@@ -91,11 +171,26 @@
 .confirm-card {
 	background: #fff1f2;
 	border-radius: 16px;
-	padding: 1.5rem;
+	padding: 1.1rem;
 	border: 1px solid #fecdd3;
 	position: sticky;
 	top: 1rem;
 	align-self: start;
+}
+
+.step-warning {
+	margin-top: 0.8rem;
+	padding: 0.55rem 0.65rem;
+	border-radius: 10px;
+	font-size: 0.83rem;
+	font-weight: 600;
+	color: #92400e;
+	background: #fffbeb;
+	border: 1px solid #fde68a;
+}
+
+.confirm-step {
+	margin-top: 0.8rem;
 }
 
 .confirm-card h3 {
@@ -110,10 +205,11 @@
 }
 
 .actions {
-	margin-top: 1.5rem;
+	margin-top: 1rem;
 	display: flex;
 	align-items: center;
 	gap: 1rem;
+	flex-wrap: wrap;
 }
 
 .btn {
@@ -150,7 +246,7 @@
 }
 
 .delete-grid {
-	max-width: 1100px;
+	max-width: 980px;
 	margin: 0 auto 1.5rem;
 	display: grid;
 	grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr);

@@ -1,9 +1,17 @@
 <section class="delete-header">
 	<div>
 		<h1>Eliminar baterias</h1>
-		<p>Busca un registro y confirma la eliminacion.</p>
+		<p>Filtra, selecciona y elimina con confirmacion segura.</p>
 	</div>
 	<a class="back-link" routerLink="/modulos/baterias">← Volver al menu</a>
+</section>
+
+<section class="quick-actions">
+	<a class="chip" routerLink="/modulos/baterias">Volver</a>
+	<button class="chip" type="button" (click)="onClearSearch()">Limpiar busqueda</button>
+	<button class="chip" type="button" (click)="setEstadoFilter('')">Estado: todos</button>
+	<button class="chip" type="button" (click)="onRefresh()">Refrescar</button>
+	<a class="chip" [href]="exportUrl" target="_blank" rel="noopener">Exportar</a>
 </section>
 
 <section class="search-bar">
@@ -17,6 +25,16 @@
 		/>
 	</label>
 </section>
+
+<section class="quick-filters">
+	<button class="filter-chip" type="button" [class.active]="estadoFilter === ''" (click)="setEstadoFilter('')">Todos</button>
+	<button class="filter-chip" type="button" [class.active]="estadoFilter === 'Vigente'" (click)="setEstadoFilter('Vigente')">Vigente</button>
+	<button class="filter-chip warning" type="button" [class.active]="estadoFilter === 'Por vencer'" (click)="setEstadoFilter('Por vencer')">Por vencer</button>
+	<button class="filter-chip danger" type="button" [class.active]="estadoFilter === 'Vencido'" (click)="setEstadoFilter('Vencido')">Vencido</button>
+</section>
+
+<section class="notice success" *ngIf="deletedMessage">{{ deletedMessage }}</section>
+<section class="notice error" *ngIf="errorMessage">{{ errorMessage }}</section>
 
 <section class="delete-grid">
 	<section class="results">
@@ -35,8 +53,6 @@
 			<p class="empty" *ngIf="resultados.length === 0">Sin resultados.</p>
 		</div>
 		<p class="empty" *ngIf="isLoading">Cargando registros...</p>
-		<p class="empty" *ngIf="errorMessage">{{ errorMessage }}</p>
-		<p class="empty" *ngIf="deletedMessage">{{ deletedMessage }}</p>
 	</section>
 
 	<section class="confirm-card" *ngIf="selectedRegistro as registro">
@@ -50,9 +66,21 @@
 			<li><strong>Inventario No:</strong> {{ registro.inventarioNo }}</li>
 			<li><strong>Estado:</strong> {{ registro.estado }}</li>
 		</ul>
+
+		<div class="step-warning" *ngIf="!requiresDeleteConfirmation">
+			Este proceso usa 2 pasos para evitar eliminaciones accidentales.
+		</div>
+
+		<div class="confirm-step" *ngIf="requiresDeleteConfirmation">
+			<label class="field">
+				<span>Escribe {{ registro.serial || registro.cod }} para confirmar</span>
+				<input type="text" [(ngModel)]="confirmText" placeholder="Confirmar eliminacion" />
+			</label>
+		</div>
+
 		<div class="actions">
 			<button class="btn danger" type="button" (click)="onDelete()" [disabled]="isDeleting">
-				Eliminar
+				{{ requiresDeleteConfirmation ? 'Confirmar eliminacion' : 'Continuar' }}
 			</button>
 			<button class="btn ghost" type="button" (click)="onReset()">Cancelar</button>
 		</div>
