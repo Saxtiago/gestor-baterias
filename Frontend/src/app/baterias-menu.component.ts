@@ -49,19 +49,6 @@ interface DashboardItem {
           </article>
         </section>
 
-        <section class="quick-filters">
-          <a class="filter-chip" routerLink="/modulos/baterias/listar">Ver todo</a>
-          <a class="filter-chip danger" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Vencido' }">
-            Vencidas
-          </a>
-          <a class="filter-chip warning" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">
-            Por vencer
-          </a>
-          <a class="filter-chip" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Vigente' }">
-            Vigentes
-          </a>
-        </section>
-
         <section class="menu-grid">
           <a class="menu-card" routerLink="/modulos/baterias/agregar">
             <h2>Agregar</h2>
@@ -213,36 +200,6 @@ interface DashboardItem {
     .stat-card.ok {
       border-color: #14532d;
       background: #11281d;
-    }
-
-    .quick-filters {
-      margin: 0 0 1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
-
-    .filter-chip {
-      text-decoration: none;
-      border: 1px solid #334155;
-      border-radius: 999px;
-      padding: 0.35rem 0.8rem;
-      color: #cbd5e1;
-      background: #111827;
-      font-weight: 600;
-      font-size: 0.85rem;
-    }
-
-    .filter-chip.danger {
-      border-color: #7f1d1d;
-      color: #fca5a5;
-      background: #2a1215;
-    }
-
-    .filter-chip.warning {
-      border-color: #854d0e;
-      color: #fcd34d;
-      background: #2b2112;
     }
 
     .attention-card {
