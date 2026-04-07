@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, 
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BehaviorSubject, combineLatest, map, catchError, finalize, of, switchMap, shareReplay, Observable, Subject, asyncScheduler, observeOn, startWith } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, asyncScheduler, catchError, combineLatest, finalize, map, observeOn, of, shareReplay, startWith, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
@@ -24,6 +24,20 @@ interface RegistroListado {
   anosMesesDias: string;
 }
 
+interface FiltrosListado {
+  searchText: string;
+  negocioFilter: string;
+  marcaFilter: string;
+  fechaDesde: string;
+  fechaHasta: string;
+  selectedEstados: string[];
+}
+
+interface ChartItem {
+  label: string;
+  count: number;
+}
+
 @Component({
   selector: 'app-listar',
   imports: [AsyncPipe, FormsModule, NgFor, NgIf, RouterLink, HttpClientModule],
@@ -33,12 +47,33 @@ interface RegistroListado {
 })
 export class Listar implements OnInit {
   private readonly apiUrl = `${environment.apiBaseUrl}/api/baterias?all=1`;
-  private readonly filtrosSubject = new BehaviorSubject({
+  private readonly filtrosSubject = new BehaviorSubject<FiltrosListado>({
     searchText: '',
-    estadoFilter: '',
     negocioFilter: '',
+    marcaFilter: '',
+    fechaDesde: '',
+    fechaHasta: '',
+    selectedEstados: [],
   });
   private readonly refreshSubject = new Subject<void>();
+
+  protected searchText = '';
+  protected negocioFilter = '';
+  protected marcaFilter = '';
+  protected fechaDesde = '';
+  protected fechaHasta = '';
+  protected selectedEstados: string[] = [];
+  protected isLoading = false;
+  protected errorMessage = '';
+  protected maxEstadoCount = 1;
+  protected maxMarcaCount = 1;
+
+  protected readonly estados = ['Vigente', 'Por vencer', 'Vencido'];
+  protected registros$!: Observable<RegistroListado[] | null>;
+  protected registrosFiltrados$!: Observable<RegistroListado[] | null>;
+  protected estadoChart$!: Observable<ChartItem[]>;
+  protected marcaChart$!: Observable<ChartItem[]>;
+  protected marcasDisponibles$!: Observable<string[]>;
 
   constructor(
     private readonly http: HttpClient,
@@ -74,18 +109,76 @@ export class Listar implements OnInit {
         registros ? this.applyFilters(registros, filtros) : null,
       ),
       observeOn(asyncScheduler),
+      shareReplay(1),
+    );
+
+    this.estadoChart$ = combineLatest([
+      this.registros$,
+      this.filtrosSubject.asObservable(),
+    ]).pipe(
+      map(([registros, filtros]) => {
+        if (!registros) {
+          this.maxEstadoCount = 1;
+          return [];
+        }
+
+        const base = this.applyFilters(registros, filtros, true);
+        const chart = this.estados.map((estado) => ({
+          label: estado,
+          count: base.filter((item) => item.estado === estado).length,
+        }));
+
+        this.maxEstadoCount = Math.max(1, ...chart.map((item) => item.count));
+        return chart;
+      }),
+      observeOn(asyncScheduler),
+      shareReplay(1),
+    );
+
+    this.marcaChart$ = combineLatest([
+      this.registros$,
+      this.filtrosSubject.asObservable(),
+    ]).pipe(
+      map(([registros, filtros]) => {
+        if (!registros) {
+          this.maxMarcaCount = 1;
+          return [];
+        }
+
+        const base = this.applyFilters(registros, filtros, false, true);
+        const counters = new Map<string, number>();
+
+        base.forEach((item) => {
+          const marca = item.upsMarca || 'Sin marca';
+          counters.set(marca, (counters.get(marca) ?? 0) + 1);
+        });
+
+        const chart = Array.from(counters.entries())
+          .map(([label, count]) => ({ label, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 8);
+
+        this.maxMarcaCount = Math.max(1, ...chart.map((item) => item.count));
+        return chart;
+      }),
+      observeOn(asyncScheduler),
+      shareReplay(1),
+    );
+
+    this.marcasDisponibles$ = this.registros$.pipe(
+      map((registros) => {
+        if (!registros) {
+          return [];
+        }
+
+        return Array.from(
+          new Set(registros.map((item) => item.upsMarca).filter((item) => item.trim().length > 0)),
+        ).sort((a, b) => a.localeCompare(b));
+      }),
+      observeOn(asyncScheduler),
+      shareReplay(1),
     );
   }
-
-  protected searchText = '';
-  protected estadoFilter = '';
-  protected negocioFilter = '';
-  protected isLoading = false;
-  protected errorMessage = '';
-
-  protected readonly estados = ['Vigente', 'Por vencer', 'Vencido'];
-  protected registros$!: Observable<RegistroListado[] | null>;
-  protected registrosFiltrados$!: Observable<RegistroListado[] | null>;
 
   ngOnInit(): void {
     this.applyInitialFiltersFromQuery();
@@ -99,14 +192,20 @@ export class Listar implements OnInit {
     const estado = queryParams.get('estado')?.trim() ?? '';
     const searchText = queryParams.get('q')?.trim() ?? '';
     const negocio = queryParams.get('negocio')?.trim() ?? '';
+    const marca = queryParams.get('marca')?.trim() ?? '';
+    const fechaDesde = queryParams.get('desde')?.trim() ?? '';
+    const fechaHasta = queryParams.get('hasta')?.trim() ?? '';
 
-    if (!estado && !searchText && !negocio) {
+    if (!estado && !searchText && !negocio && !marca && !fechaDesde && !fechaHasta) {
       return;
     }
 
-    this.estadoFilter = this.estados.includes(estado) ? estado : '';
+    this.selectedEstados = this.estados.includes(estado) ? [estado] : [];
     this.searchText = searchText;
     this.negocioFilter = negocio;
+    this.marcaFilter = marca;
+    this.fechaDesde = fechaDesde;
+    this.fechaHasta = fechaHasta;
     this.onFiltersChange();
   }
 
@@ -120,24 +219,78 @@ export class Listar implements OnInit {
   onFiltersChange(): void {
     this.filtrosSubject.next({
       searchText: this.searchText,
-      estadoFilter: this.estadoFilter,
       negocioFilter: this.negocioFilter,
+      marcaFilter: this.marcaFilter,
+      fechaDesde: this.fechaDesde,
+      fechaHasta: this.fechaHasta,
+      selectedEstados: this.selectedEstados,
     });
+  }
+
+  onEstadoCheckboxChange(estado: string, checked: boolean): void {
+    if (checked) {
+      if (!this.selectedEstados.includes(estado)) {
+        this.selectedEstados = [...this.selectedEstados, estado];
+      }
+    } else {
+      this.selectedEstados = this.selectedEstados.filter((item) => item !== estado);
+    }
+
+    this.onFiltersChange();
+  }
+
+  onChartEstadoClick(estado: string): void {
+    if (this.selectedEstados.includes(estado)) {
+      this.selectedEstados = this.selectedEstados.filter((item) => item !== estado);
+    } else {
+      this.selectedEstados = [...this.selectedEstados, estado];
+    }
+
+    this.onFiltersChange();
+  }
+
+  onChartMarcaClick(marca: string): void {
+    this.marcaFilter = this.marcaFilter === marca ? '' : marca;
+    this.onFiltersChange();
+  }
+
+  isEstadoActivo(estado: string): boolean {
+    return this.selectedEstados.includes(estado);
+  }
+
+  isMarcaActiva(marca: string): boolean {
+    return this.marcaFilter.toLowerCase() === marca.toLowerCase();
+  }
+
+  getEstadoBarWidth(count: number): string {
+    return `${Math.max(8, Math.round((count / this.maxEstadoCount) * 100))}%`;
+  }
+
+  getMarcaBarWidth(count: number): string {
+    return `${Math.max(8, Math.round((count / this.maxMarcaCount) * 100))}%`;
   }
 
   onClearFilters(): void {
     this.searchText = '';
-    this.estadoFilter = '';
     this.negocioFilter = '';
+    this.marcaFilter = '';
+    this.fechaDesde = '';
+    this.fechaHasta = '';
+    this.selectedEstados = [];
     this.onFiltersChange();
   }
 
   private applyFilters(
     registros: RegistroListado[],
-    filtros: { searchText: string; estadoFilter: string; negocioFilter: string },
+    filtros: FiltrosListado,
+    ignoreEstado = false,
+    ignoreMarca = false,
   ): RegistroListado[] {
     const texto = filtros.searchText.trim().toLowerCase();
     const negocio = filtros.negocioFilter.trim().toLowerCase();
+    const marca = filtros.marcaFilter.trim().toLowerCase();
+    const fechaDesde = this.parseDate(filtros.fechaDesde);
+    const fechaHasta = this.parseDate(filtros.fechaHasta);
 
     return registros.filter((registro) => {
       const textoCoincide =
@@ -150,10 +303,42 @@ export class Listar implements OnInit {
         !negocio || registro.negocio.toLowerCase().includes(negocio);
 
       const estadoCoincide =
-        !filtros.estadoFilter || registro.estado === filtros.estadoFilter;
+        ignoreEstado || filtros.selectedEstados.length === 0 || filtros.selectedEstados.includes(registro.estado);
 
-      return textoCoincide && negocioCoincide && estadoCoincide;
+      const marcaCoincide =
+        ignoreMarca || !marca || registro.upsMarca.toLowerCase().includes(marca);
+
+      const dueDate = this.parseDate(registro.fechaVencimiento);
+      const fechaDesdeCoincide = !fechaDesde || (!!dueDate && dueDate >= fechaDesde);
+      const fechaHastaCoincide = !fechaHasta || (!!dueDate && dueDate <= fechaHasta);
+
+      return textoCoincide && negocioCoincide && estadoCoincide && marcaCoincide && fechaDesdeCoincide && fechaHastaCoincide;
     });
+  }
+
+  private parseDate(value: string): Date | null {
+    const raw = value.trim();
+    if (!raw) {
+      return null;
+    }
+
+    const ymdMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (ymdMatch) {
+      const parsed = new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
+      parsed.setHours(0, 0, 0, 0);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const dmyMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (dmyMatch) {
+      const parsed = new Date(Number(dmyMatch[3]), Number(dmyMatch[2]) - 1, Number(dmyMatch[1]));
+      parsed.setHours(0, 0, 0, 0);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const fallback = new Date(raw);
+    fallback.setHours(0, 0, 0, 0);
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
   }
 
   private mapRegistro(registro: RegistroApi): RegistroListado {
