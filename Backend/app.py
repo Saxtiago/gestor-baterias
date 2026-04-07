@@ -5,10 +5,10 @@ import re
 import traceback
 import unicodedata
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from calendar import monthrange
 from typing import Dict, Optional
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, redirect
 from flask_cors import CORS
 from azure.data.tables import TableServiceClient, UpdateMode
 from azure.core.exceptions import ResourceNotFoundError
@@ -69,6 +69,31 @@ def get_table_client():
 
 def using_azure_table_storage() -> bool:
     return bool(STORAGE_CONNECTION_STRING)
+
+
+def get_frontend_base_url() -> Optional[str]:
+    if FRONTEND_BASE_URL:
+        return FRONTEND_BASE_URL.rstrip('/')
+
+    if not using_azure_table_storage():
+        return 'http://172.19.72.16:4200'
+
+    return None
+
+
+def redirect_to_frontend_or_api(path: str = ''):
+    frontend_url = get_frontend_base_url()
+    if frontend_url:
+        return redirect(f"{frontend_url}{path}", code=302)
+
+    return jsonify({
+        'ok': True,
+        'message': 'Backend API activo. Esta URL ya no sirve la interfaz web.',
+        'api': {
+            'baterias': '/api/baterias',
+            'sync': '/api/baterias/sync',
+        },
+    }), 200
 
 
 def ensure_excel_file_exists() -> None:
@@ -409,38 +434,71 @@ def listar_baterias():
 
 def sincronizar_baterias():
     try:
-        table_client = get_table_client()
-        entities = list(table_client.query_entities(
-            f"PartitionKey eq '{PARTITION_KEY}'"
-        ))
+        if using_azure_table_storage():
+            table_client = get_table_client()
+            entities = list(table_client.query_entities(
+                f"PartitionKey eq '{PARTITION_KEY}'"
+            ))
 
+            updated_count = 0
+            for entity in entities:
+                fecha_instalacion = str(entity.get(COLUMN_KEY_MAP['FECHA DE INSTALACION'], '')).strip()
+                computed = build_computed_values(fecha_instalacion)
+
+                patch = {
+                    'PartitionKey': entity['PartitionKey'],
+                    'RowKey': entity['RowKey'],
+                }
+                changed = False
+                for col_name, value in computed.items():
+                    key = COLUMN_KEY_MAP[col_name]
+                    current_value = str(entity.get(key, ''))
+                    if current_value != value:
+                        patch[key] = value
+                        changed = True
+
+                if changed:
+                    table_client.update_entity(patch, mode=UpdateMode.MERGE)
+                    updated_count += 1
+
+            return jsonify({
+                'ok': True,
+                'updated': updated_count,
+                'total': len(entities),
+                'source': 'azure-table',
+            }), 200
+
+        records = load_excel_records()
         updated_count = 0
-        for entity in entities:
-            fecha_instalacion = str(entity.get(COLUMN_KEY_MAP['FECHA DE INSTALACION'], '')).strip()
-            computed = build_computed_values(fecha_instalacion)
+        synced_records: list[dict[str, str]] = []
 
-            patch = {
-                'PartitionKey': entity['PartitionKey'],
-                'RowKey': entity['RowKey'],
+        for record in records:
+            before = {
+                'FECHA DE VENCIMIENTO': str(record.get('FECHA DE VENCIMIENTO', '')),
+                'ESTADO': str(record.get('ESTADO', '')),
+                'DIAS VENCIDOS': str(record.get('DIAS VENCIDOS', '')),
+                'AÑOS/ MESES/ DIAS': str(record.get('AÑOS/ MESES/ DIAS', '')),
             }
-            changed = False
-            for col_name, value in computed.items():
-                key = COLUMN_KEY_MAP[col_name]
-                current_value = str(entity.get(key, ''))
-                if current_value != value:
-                    patch[key] = value
-                    changed = True
-
-            if changed:
-                table_client.update_entity(patch, mode=UpdateMode.MERGE)
+            updated = compute_excel_fields(dict(record))
+            after = {
+                'FECHA DE VENCIMIENTO': str(updated.get('FECHA DE VENCIMIENTO', '')),
+                'ESTADO': str(updated.get('ESTADO', '')),
+                'DIAS VENCIDOS': str(updated.get('DIAS VENCIDOS', '')),
+                'AÑOS/ MESES/ DIAS': str(updated.get('AÑOS/ MESES/ DIAS', '')),
+            }
+            if before != after:
                 updated_count += 1
+            synced_records.append(updated)
 
+        save_excel_records(synced_records)
         return jsonify({
             'ok': True,
             'updated': updated_count,
-            'total': len(entities),
+            'total': len(records),
+            'source': 'excel',
         }), 200
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": f"Error al sincronizar los registros: {str(e)}"}), 500
 
 
