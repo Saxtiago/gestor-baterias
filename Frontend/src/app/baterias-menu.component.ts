@@ -167,24 +167,24 @@ interface DashboardItem {
     }
 
     .menu-grid {
-      margin: 1.25rem 0 0;
+      margin: 0.85rem 0 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.8rem;
     }
 
     .stats-grid {
-      margin: 0 0 1rem;
+      margin: 0 0 0.85rem;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 0.85rem;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.7rem;
     }
 
     .stat-card {
       background: #ffffff;
       border: 1px solid #dbe3ee;
       border-radius: 12px;
-      padding: 0.9rem 1rem;
+      padding: 0.7rem 0.85rem;
     }
 
     .stat-card span {
@@ -195,8 +195,8 @@ interface DashboardItem {
 
     .stat-card strong {
       display: block;
-      margin-top: 0.3rem;
-      font-size: 1.5rem;
+      margin-top: 0.2rem;
+      font-size: 1.4rem;
       color: #0f172a;
     }
 
@@ -251,7 +251,7 @@ interface DashboardItem {
       background: #ffffff;
       border: 1px solid #dbe3ee;
       border-radius: 12px;
-      padding: 0.9rem;
+      padding: 0.75rem;
       max-height: calc(100vh - 2rem);
       overflow: auto;
     }
@@ -260,13 +260,13 @@ interface DashboardItem {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
     }
 
     .attention-head h2 {
       margin: 0;
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: #1f2937;
     }
 
@@ -274,28 +274,28 @@ interface DashboardItem {
       color: #1d4ed8;
       text-decoration: none;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .attention-list {
       display: grid;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
     .attention-item {
       border: 1px solid #e2e8f0;
       border-radius: 10px;
-      padding: 0.6rem;
+      padding: 0.5rem;
       display: flex;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: 0.5rem;
       align-items: center;
     }
 
     .attention-item p {
-      margin: 0.25rem 0 0;
+      margin: 0.2rem 0 0;
       color: #64748b;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .badge {
@@ -329,20 +329,21 @@ interface DashboardItem {
       background: #ffffff;
       border: 1px solid #dbe3ee;
       border-radius: 12px;
-      padding: 1.25rem;
+      padding: 0.9rem;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .menu-card h2 {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #1d4ed8;
     }
 
     .menu-card p {
-      margin: 0.6rem 0 0;
+      margin: 0.4rem 0 0;
       color: #374151;
       line-height: 1.4;
+      font-size: 0.9rem;
     }
 
     .export-card {
