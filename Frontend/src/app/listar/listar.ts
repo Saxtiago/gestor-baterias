@@ -2,7 +2,7 @@ import { AsyncPipe, isPlatformBrowser, NgFor, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, catchError, finalize, of, switchMap, shareReplay, Observable, Subject, asyncScheduler, observeOn, startWith } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -42,6 +42,7 @@ export class Listar implements OnInit {
 
   constructor(
     private readonly http: HttpClient,
+    private readonly route: ActivatedRoute,
     private readonly cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private readonly platformId: object,
   ) {
@@ -87,9 +88,26 @@ export class Listar implements OnInit {
   protected registrosFiltrados$!: Observable<RegistroListado[] | null>;
 
   ngOnInit(): void {
+    this.applyInitialFiltersFromQuery();
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => this.fetchRegistros(), 0);
     }
+  }
+
+  private applyInitialFiltersFromQuery(): void {
+    const queryParams = this.route.snapshot.queryParamMap;
+    const estado = queryParams.get('estado')?.trim() ?? '';
+    const searchText = queryParams.get('q')?.trim() ?? '';
+    const negocio = queryParams.get('negocio')?.trim() ?? '';
+
+    if (!estado && !searchText && !negocio) {
+      return;
+    }
+
+    this.estadoFilter = this.estados.includes(estado) ? estado : '';
+    this.searchText = searchText;
+    this.negocioFilter = negocio;
+    this.onFiltersChange();
   }
 
   fetchRegistros(): void {
