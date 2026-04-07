@@ -10,16 +10,16 @@
 .form-header h1 {
 	margin: 0;
 	font-size: 2rem;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .form-header p {
 	margin: 0.4rem 0 0;
-	color: #475569;
+	color: #94a3b8;
 }
 
 .back-link {
-	color: #0f766e;
+	color: #7dd3fc;
 	text-decoration: none;
 	font-weight: 600;
 }
@@ -34,25 +34,25 @@
 }
 
 .notice.success {
-	background: #ecfdf5;
-	border: 1px solid #bbf7d0;
-	color: #166534;
+	background: #11281d;
+	border: 1px solid #14532d;
+	color: #86efac;
 }
 
 .notice.error {
-	background: #fef2f2;
-	border: 1px solid #fecaca;
-	color: #991b1b;
+	background: #2a1215;
+	border: 1px solid #7f1d1d;
+	color: #fca5a5;
 }
 
 .form-card {
 	max-width: 900px;
 	margin: 0 auto;
-	background: #ffffff;
+	background: #0f172a;
 	border-radius: 16px;
 	padding: 1.25rem;
-	box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-	border: 1px solid #e2e8f0;
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+	border: 1px solid #2b3a52;
 }
 
 .form-grid,
@@ -65,7 +65,7 @@
 .computed-grid {
 	margin-top: 1.1rem;
 	padding-top: 1rem;
-	border-top: 1px dashed #e2e8f0;
+	border-top: 1px dashed #334155;
 }
 
 .field {
@@ -73,25 +73,27 @@
 	flex-direction: column;
 	gap: 0.35rem;
 	font-size: 0.9rem;
-	color: #0f172a;
+	color: #e2e8f0;
 }
 
 .field input {
-	border: 1px solid #cbd5f5;
+	border: 1px solid #3b4b67;
 	border-radius: 10px;
 	padding: 0.55rem 0.7rem;
 	font-size: 0.95rem;
 	outline: none;
+	background: #111827;
+	color: #f8fafc;
 	transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 .field input:focus {
-	border-color: #0f766e;
-	box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+	border-color: #22d3ee;
+	box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
 }
 
 .field small {
-	color: #dc2626;
+	color: #fca5a5;
 	font-size: 0.8rem;
 }
 
@@ -112,27 +114,27 @@
 }
 
 .btn.primary {
-	background: #0f766e;
+	background: #0ea5e9;
 	color: #ffffff;
 }
 
 .btn.primary.alt {
-	background: #0f172a;
+	background: #1e293b;
 }
 
 .btn.ghost {
 	background: transparent;
-	color: #0f172a;
-	border: 1px solid #cbd5f5;
+	color: #e2e8f0;
+	border: 1px solid #3b4b67;
 }
 
 .status {
-	color: #0f766e;
+	color: #67e8f9;
 	font-weight: 600;
 }
 
 .status.error {
-	color: #dc2626;
+	color: #fca5a5;
 }
 
 @media (max-width: 720px) {

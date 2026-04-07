@@ -27,12 +27,12 @@ import { RouterLink } from '@angular/router';
     .view-header h1 {
       margin: 0;
       font-size: 2rem;
-      color: #1f2937;
+      color: #f8fafc;
     }
 
     .view-header p {
       margin-top: 0.75rem;
-      color: #4b5563;
+      color: #94a3b8;
     }
 
     .menu-grid {
@@ -46,8 +46,8 @@ import { RouterLink } from '@angular/router';
     .menu-card {
       display: block;
       text-decoration: none;
-      background: #ffffff;
-      border: 1px solid #dbe3ee;
+      background: #0f172a;
+      border: 1px solid #2b3a52;
       border-radius: 12px;
       padding: 1.25rem;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -56,18 +56,19 @@ import { RouterLink } from '@angular/router';
     .menu-card h2 {
       margin: 0;
       font-size: 1.2rem;
-      color: #1d4ed8;
+      color: #7dd3fc;
     }
 
     .menu-card p {
       margin: 0.6rem 0 0;
-      color: #374151;
+      color: #cbd5e1;
       line-height: 1.4;
     }
 
     .menu-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+      border-color: #38bdf8;
     }
   `,
 })

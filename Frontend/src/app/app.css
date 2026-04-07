@@ -1,5 +1,8 @@
 .home-wrapper {
 	min-height: 100vh;
 	padding: 2.5rem 1.25rem;
-	background: #f4f7fb;
+	background:
+		radial-gradient(circle at 20% -10%, rgba(14, 165, 233, 0.18), transparent 35%),
+		radial-gradient(circle at 90% 10%, rgba(20, 184, 166, 0.12), transparent 30%),
+		#020617;
 }

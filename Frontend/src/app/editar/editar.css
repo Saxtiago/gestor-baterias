@@ -10,16 +10,16 @@
 .edit-header h1 {
 	margin: 0;
 	font-size: 2rem;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .edit-header p {
 	margin: 0.4rem 0 0;
-	color: #475569;
+	color: #94a3b8;
 }
 
 .back-link {
-	color: #0f766e;
+	color: #7dd3fc;
 	text-decoration: none;
 	font-weight: 600;
 }
@@ -39,15 +39,15 @@
 }
 
 .notice.success {
-	background: #ecfdf5;
-	border: 1px solid #bbf7d0;
-	color: #166534;
+	background: #11281d;
+	border: 1px solid #14532d;
+	color: #86efac;
 }
 
 .notice.error {
-	background: #fef2f2;
-	border: 1px solid #fecaca;
-	color: #991b1b;
+	background: #2a1215;
+	border: 1px solid #7f1d1d;
+	color: #fca5a5;
 }
 
 .field {
@@ -55,16 +55,17 @@
 	flex-direction: column;
 	gap: 0.4rem;
 	font-size: 0.9rem;
-	color: #0f172a;
+	color: #e2e8f0;
 }
 
 .field input {
-	border: 1px solid #cbd5f5;
+	border: 1px solid #3b4b67;
 	border-radius: 10px;
 	padding: 0.55rem 0.7rem;
 	font-size: 0.95rem;
 	outline: none;
-	background: #ffffff;
+	background: #111827;
+	color: #f8fafc;
 }
 
 .results {
@@ -74,7 +75,7 @@
 .results h2 {
 	margin: 0 0 0.75rem;
 	font-size: 1.2rem;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .result-grid {
@@ -84,46 +85,46 @@
 }
 
 .result-card {
-	border: 1px solid #e2e8f0;
+	border: 1px solid #2b3a52;
 	border-radius: 14px;
 	padding: 1rem;
-	background: #ffffff;
+	background: #0f172a;
 	text-align: left;
 	cursor: pointer;
 	transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 .result-card.active {
-	border-color: #0f766e;
-	box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+	border-color: #22d3ee;
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
 .result-title {
 	font-weight: 600;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .result-sub {
 	margin-top: 0.4rem;
-	color: #64748b;
+	color: #94a3b8;
 	font-size: 0.85rem;
 }
 
 .form-card {
 	margin: 0;
-	background: #ffffff;
+	background: #0f172a;
 	border-radius: 16px;
 	padding: 1.15rem;
-	border: 1px solid #e2e8f0;
-	box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+	border: 1px solid #2b3a52;
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 	position: sticky;
 	top: 1rem;
 	align-self: start;
 }
 
 .changes-card {
-	border: 1px solid #fde68a;
-	background: #fffbeb;
+	border: 1px solid #854d0e;
+	background: #2b2112;
 	border-radius: 12px;
 	padding: 0.75rem;
 	margin-bottom: 0.9rem;
@@ -132,7 +133,7 @@
 .changes-card h3 {
 	margin: 0 0 0.6rem;
 	font-size: 0.92rem;
-	color: #92400e;
+	color: #fcd34d;
 }
 
 .changes-list {
@@ -141,28 +142,28 @@
 }
 
 .change-item {
-	border: 1px solid #fde68a;
+	border: 1px solid #6b4a16;
 	border-radius: 10px;
 	padding: 0.5rem 0.6rem;
-	background: #fff;
+	background: #111827;
 }
 
 .change-item strong {
 	display: block;
 	font-size: 0.82rem;
-	color: #0f172a;
+	color: #f8fafc;
 	margin-bottom: 0.25rem;
 }
 
 .change-item p {
 	margin: 0.2rem 0;
 	font-size: 0.8rem;
-	color: #475569;
+	color: #94a3b8;
 }
 
 .change-item p span {
 	font-weight: 700;
-	color: #334155;
+	color: #e2e8f0;
 }
 
 .form-grid {
@@ -188,27 +189,27 @@
 }
 
 .btn.primary {
-	background: #0f766e;
+	background: #0ea5e9;
 	color: #ffffff;
 }
 
 .btn.ghost {
 	background: transparent;
-	color: #0f172a;
-	border: 1px solid #cbd5f5;
+	color: #e2e8f0;
+	border: 1px solid #3b4b67;
 }
 
 .empty {
-	color: #64748b;
+	color: #94a3b8;
 	margin: 0;
 }
 
 .dirty {
 	font-size: 0.82rem;
 	font-weight: 700;
-	color: #92400e;
-	background: #fffbeb;
-	border: 1px solid #fde68a;
+	color: #fcd34d;
+	background: #2b2112;
+	border: 1px solid #854d0e;
 	border-radius: 999px;
 	padding: 0.25rem 0.6rem;
 }

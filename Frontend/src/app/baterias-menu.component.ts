@@ -128,27 +128,27 @@ interface DashboardItem {
     .view-header h1 {
       margin: 0;
       font-size: 2rem;
-      color: #1f2937;
+      color: #f8fafc;
     }
 
     .view-header p {
       margin-top: 0.75rem;
-      color: #4b5563;
+      color: #94a3b8;
     }
 
     .sync-status {
       font-weight: 600;
-      color: #0f766e;
+      color: #2dd4bf;
     }
 
     .sync-status.error {
-      color: #b91c1c;
+      color: #f87171;
     }
 
     .back-link {
       display: inline-block;
       margin-top: 0.9rem;
-      color: #1d4ed8;
+      color: #7dd3fc;
       text-decoration: none;
       font-weight: 600;
     }
@@ -181,15 +181,15 @@ interface DashboardItem {
     }
 
     .stat-card {
-      background: #ffffff;
-      border: 1px solid #dbe3ee;
+      background: #111827;
+      border: 1px solid #263244;
       border-radius: 12px;
       padding: 0.7rem 0.85rem;
     }
 
     .stat-card span {
       display: block;
-      color: #64748b;
+      color: #94a3b8;
       font-size: 0.85rem;
     }
 
@@ -197,22 +197,22 @@ interface DashboardItem {
       display: block;
       margin-top: 0.2rem;
       font-size: 1.4rem;
-      color: #0f172a;
+      color: #f8fafc;
     }
 
     .stat-card.danger {
-      border-color: #fecaca;
-      background: #fef2f2;
+      border-color: #7f1d1d;
+      background: #2a1215;
     }
 
     .stat-card.warning {
-      border-color: #fde68a;
-      background: #fffbeb;
+      border-color: #854d0e;
+      background: #2b2112;
     }
 
     .stat-card.ok {
-      border-color: #bbf7d0;
-      background: #f0fdf4;
+      border-color: #14532d;
+      background: #11281d;
     }
 
     .quick-filters {
@@ -224,36 +224,37 @@ interface DashboardItem {
 
     .filter-chip {
       text-decoration: none;
-      border: 1px solid #dbe3ee;
+      border: 1px solid #334155;
       border-radius: 999px;
       padding: 0.35rem 0.8rem;
-      color: #334155;
-      background: #ffffff;
+      color: #cbd5e1;
+      background: #111827;
       font-weight: 600;
       font-size: 0.85rem;
     }
 
     .filter-chip.danger {
-      border-color: #fecaca;
-      color: #991b1b;
-      background: #fef2f2;
+      border-color: #7f1d1d;
+      color: #fca5a5;
+      background: #2a1215;
     }
 
     .filter-chip.warning {
-      border-color: #fde68a;
-      color: #92400e;
-      background: #fffbeb;
+      border-color: #854d0e;
+      color: #fcd34d;
+      background: #2b2112;
     }
 
     .attention-card {
       position: sticky;
       top: 1rem;
-      background: #ffffff;
-      border: 1px solid #dbe3ee;
+      background: #0f172a;
+      border: 1px solid #334155;
       border-radius: 12px;
       padding: 0.75rem;
       max-height: calc(100vh - 2rem);
       overflow: auto;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
     }
 
     .attention-head {
@@ -267,11 +268,11 @@ interface DashboardItem {
     .attention-head h2 {
       margin: 0;
       font-size: 0.95rem;
-      color: #1f2937;
+      color: #f1f5f9;
     }
 
     .attention-head a {
-      color: #1d4ed8;
+      color: #7dd3fc;
       text-decoration: none;
       font-weight: 600;
       font-size: 0.8rem;
@@ -283,7 +284,8 @@ interface DashboardItem {
     }
 
     .attention-item {
-      border: 1px solid #e2e8f0;
+      border: 1px solid #2a374d;
+      background: #111827;
       border-radius: 10px;
       padding: 0.5rem;
       display: flex;
@@ -292,9 +294,13 @@ interface DashboardItem {
       align-items: center;
     }
 
+    .attention-item strong {
+      color: #f8fafc;
+    }
+
     .attention-item p {
       margin: 0.2rem 0 0;
-      color: #64748b;
+      color: #94a3b8;
       font-size: 0.8rem;
     }
 
@@ -303,31 +309,31 @@ interface DashboardItem {
       font-size: 0.75rem;
       font-weight: 700;
       padding: 0.25rem 0.6rem;
-      background: #e2e8f0;
-      color: #0f172a;
+      background: #1f2937;
+      color: #e2e8f0;
       white-space: nowrap;
     }
 
     .badge.danger {
-      background: #fee2e2;
-      color: #991b1b;
+      background: #3b1418;
+      color: #fca5a5;
     }
 
     .badge.warning {
-      background: #fef3c7;
-      color: #92400e;
+      background: #3a2a12;
+      color: #fcd34d;
     }
 
     .empty {
       margin: 0;
-      color: #64748b;
+      color: #94a3b8;
     }
 
     .menu-card {
       display: block;
       text-decoration: none;
-      background: #ffffff;
-      border: 1px solid #dbe3ee;
+      background: #0f172a;
+      border: 1px solid #2b3a52;
       border-radius: 12px;
       padding: 0.9rem;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -336,12 +342,12 @@ interface DashboardItem {
     .menu-card h2 {
       margin: 0;
       font-size: 1.1rem;
-      color: #1d4ed8;
+      color: #7dd3fc;
     }
 
     .menu-card p {
       margin: 0.4rem 0 0;
-      color: #374151;
+      color: #cbd5e1;
       line-height: 1.4;
       font-size: 0.9rem;
     }
@@ -356,17 +362,17 @@ interface DashboardItem {
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      color: #334155;
+      color: #cbd5e1;
       font-size: 0.85rem;
     }
 
     .field-inline select {
-      border: 1px solid #cbd5f5;
+      border: 1px solid #3b4b67;
       border-radius: 10px;
       padding: 0.5rem 0.65rem;
       font-size: 0.9rem;
-      background: #ffffff;
-      color: #0f172a;
+      background: #111827;
+      color: #f8fafc;
       outline: none;
     }
 
@@ -375,18 +381,19 @@ interface DashboardItem {
       align-items: center;
       justify-content: center;
       text-decoration: none;
-      border: 1px solid #cbd5f5;
+      border: 1px solid #3b4b67;
       border-radius: 999px;
       padding: 0.5rem 0.9rem;
-      color: #0f172a;
+      color: #e2e8f0;
       font-weight: 600;
-      background: #f8fafc;
+      background: #111827;
       width: fit-content;
     }
 
     .menu-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+      border-color: #38bdf8;
     }
 
     @media (max-width: 980px) {

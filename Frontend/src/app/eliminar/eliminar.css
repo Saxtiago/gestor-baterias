@@ -10,16 +10,16 @@
 .delete-header h1 {
 	margin: 0;
 	font-size: 2rem;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .delete-header p {
 	margin: 0.4rem 0 0;
-	color: #475569;
+	color: #94a3b8;
 }
 
 .back-link {
-	color: #0f766e;
+	color: #7dd3fc;
 	text-decoration: none;
 	font-weight: 600;
 }
@@ -39,15 +39,15 @@
 }
 
 .notice.success {
-	background: #ecfdf5;
-	border: 1px solid #bbf7d0;
-	color: #166534;
+	background: #11281d;
+	border: 1px solid #14532d;
+	color: #86efac;
 }
 
 .notice.error {
-	background: #fef2f2;
-	border: 1px solid #fecaca;
-	color: #991b1b;
+	background: #2a1215;
+	border: 1px solid #7f1d1d;
+	color: #fca5a5;
 }
 
 .field {
@@ -55,16 +55,17 @@
 	flex-direction: column;
 	gap: 0.4rem;
 	font-size: 0.9rem;
-	color: #0f172a;
+	color: #e2e8f0;
 }
 
 .field input {
-	border: 1px solid #cbd5f5;
+	border: 1px solid #3b4b67;
 	border-radius: 10px;
 	padding: 0.55rem 0.7rem;
 	font-size: 0.95rem;
 	outline: none;
-	background: #ffffff;
+	background: #111827;
+	color: #f8fafc;
 }
 
 .results {
@@ -74,7 +75,7 @@
 .results h2 {
 	margin: 0 0 0.75rem;
 	font-size: 1.2rem;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .result-grid {
@@ -84,36 +85,36 @@
 }
 
 .result-card {
-	border: 1px solid #e2e8f0;
+	border: 1px solid #2b3a52;
 	border-radius: 14px;
 	padding: 1rem;
-	background: #ffffff;
+	background: #0f172a;
 	text-align: left;
 	cursor: pointer;
 	transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 .result-card.active {
-	border-color: #dc2626;
-	box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+	border-color: #ef4444;
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
 .result-title {
 	font-weight: 600;
-	color: #0f172a;
+	color: #f8fafc;
 }
 
 .result-sub {
 	margin-top: 0.4rem;
-	color: #64748b;
+	color: #94a3b8;
 	font-size: 0.85rem;
 }
 
 .confirm-card {
-	background: #fff1f2;
+	background: #1a0f13;
 	border-radius: 16px;
 	padding: 1.1rem;
-	border: 1px solid #fecdd3;
+	border: 1px solid #7f1d1d;
 	position: sticky;
 	top: 1rem;
 	align-self: start;
@@ -125,9 +126,9 @@
 	border-radius: 10px;
 	font-size: 0.83rem;
 	font-weight: 600;
-	color: #92400e;
-	background: #fffbeb;
-	border: 1px solid #fde68a;
+	color: #fcd34d;
+	background: #2b2112;
+	border: 1px solid #854d0e;
 }
 
 .confirm-step {
@@ -136,13 +137,13 @@
 
 .confirm-card h3 {
 	margin-top: 0;
-	color: #991b1b;
+	color: #fca5a5;
 }
 
 .confirm-card ul {
 	margin: 0.75rem 0 0;
 	padding-left: 1.2rem;
-	color: #475569;
+	color: #cbd5e1;
 }
 
 .actions {
@@ -162,28 +163,28 @@
 }
 
 .btn.danger {
-	background: #dc2626;
+	background: #b91c1c;
 	color: #ffffff;
 }
 
 .btn.ghost {
 	background: transparent;
-	color: #0f172a;
-	border: 1px solid #cbd5f5;
+	color: #e2e8f0;
+	border: 1px solid #3b4b67;
 }
 
 .empty {
-	color: #64748b;
+	color: #94a3b8;
 	margin: 0;
 }
 
 .status {
-	color: #0f766e;
+	color: #67e8f9;
 	font-weight: 600;
 }
 
 .status.error {
-	color: #dc2626;
+	color: #fca5a5;
 }
 
 .delete-grid {
