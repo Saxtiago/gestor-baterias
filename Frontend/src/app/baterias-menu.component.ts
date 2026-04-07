@@ -27,83 +27,87 @@ interface DashboardItem {
       <a class="back-link" routerLink="/">← Volver a módulos</a>
     </section>
 
-    <section class="stats-grid">
-      <article class="stat-card">
-        <span>Total</span>
-        <strong>{{ totalBaterias }}</strong>
-      </article>
-      <article class="stat-card danger">
-        <span>Vencidas</span>
-        <strong>{{ totalVencidas }}</strong>
-      </article>
-      <article class="stat-card warning">
-        <span>Por vencer</span>
-        <strong>{{ totalPorVencer }}</strong>
-      </article>
-      <article class="stat-card ok">
-        <span>Vigentes</span>
-        <strong>{{ totalVigentes }}</strong>
-      </article>
-    </section>
+    <section class="menu-layout">
+      <div class="menu-main">
+        <section class="stats-grid">
+          <article class="stat-card">
+            <span>Total</span>
+            <strong>{{ totalBaterias }}</strong>
+          </article>
+          <article class="stat-card danger">
+            <span>Vencidas</span>
+            <strong>{{ totalVencidas }}</strong>
+          </article>
+          <article class="stat-card warning">
+            <span>Por vencer</span>
+            <strong>{{ totalPorVencer }}</strong>
+          </article>
+          <article class="stat-card ok">
+            <span>Vigentes</span>
+            <strong>{{ totalVigentes }}</strong>
+          </article>
+        </section>
 
-    <section class="quick-filters">
-      <a class="filter-chip" routerLink="/modulos/baterias/listar">Ver todo</a>
-      <a class="filter-chip danger" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Vencido' }">
-        Vencidas
-      </a>
-      <a class="filter-chip warning" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">
-        Por vencer
-      </a>
-      <a class="filter-chip" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Vigente' }">
-        Vigentes
-      </a>
-    </section>
+        <section class="quick-filters">
+          <a class="filter-chip" routerLink="/modulos/baterias/listar">Ver todo</a>
+          <a class="filter-chip danger" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Vencido' }">
+            Vencidas
+          </a>
+          <a class="filter-chip warning" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">
+            Por vencer
+          </a>
+          <a class="filter-chip" routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Vigente' }">
+            Vigentes
+          </a>
+        </section>
 
-    <section class="attention-card">
-      <div class="attention-head">
-        <h2>Atención hoy</h2>
-        <a routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">Ver en listado</a>
+        <section class="menu-grid">
+          <a class="menu-card" routerLink="/modulos/baterias/agregar">
+            <h2>Agregar</h2>
+            <p>Registrar una nueva batería.</p>
+          </a>
+
+          <a class="menu-card" routerLink="/modulos/baterias/listar">
+            <h2>Buscar / Listar</h2>
+            <p>Consultar baterías registradas.</p>
+          </a>
+
+          <a class="menu-card" [href]="exportUrl" target="_blank" rel="noopener">
+            <h2>Exportar Excel</h2>
+            <p>Descargar el archivo Excel</p>
+          </a>
+
+          <a class="menu-card" routerLink="/modulos/baterias/editar">
+            <h2>Editar</h2>
+            <p>Modificar información existente.</p>
+          </a>
+
+          <a class="menu-card" routerLink="/modulos/baterias/eliminar">
+            <h2>Eliminar</h2>
+            <p>Quitar registros que ya no se necesiten.</p>
+          </a>
+        </section>
       </div>
-      <p class="empty" *ngIf="isLoadingDashboard">Cargando indicadores...</p>
-      <p class="empty" *ngIf="!isLoadingDashboard && attentionItems.length === 0">Sin alertas prioritarias.</p>
-      <div class="attention-list" *ngIf="attentionItems.length > 0">
-        <article class="attention-item" *ngFor="let item of attentionItems">
-          <div>
-            <strong>{{ item.negocio }}</strong>
-            <p>{{ item.modelo }} - {{ item.serial }}</p>
-          </div>
-          <div class="badge" [class.danger]="item.estado === 'Vencido'" [class.warning]="item.estado === 'Por vencer'">
-            {{ item.estado }}
-          </div>
-        </article>
-      </div>
-    </section>
 
-    <section class="menu-grid">
-      <a class="menu-card" routerLink="/modulos/baterias/agregar">
-        <h2>Agregar</h2>
-        <p>Registrar una nueva batería.</p>
-      </a>
-
-      <a class="menu-card" routerLink="/modulos/baterias/listar">
-        <h2>Buscar / Listar</h2>
-        <p>Consultar baterías registradas.</p>
-      </a>
-
-      <a class="menu-card" [href]="exportUrl" target="_blank" rel="noopener">
-        <h2>Exportar Excel</h2>
-        <p>Descargar el archivo Excel</p>
-      </a>
-
-      <a class="menu-card" routerLink="/modulos/baterias/editar">
-        <h2>Editar</h2>
-        <p>Modificar información existente.</p>
-      </a>
-
-      <a class="menu-card" routerLink="/modulos/baterias/eliminar">
-        <h2>Eliminar</h2>
-        <p>Quitar registros que ya no se necesiten.</p>
-      </a>
+      <aside class="attention-card">
+        <div class="attention-head">
+          <h2>Atención hoy</h2>
+          <a routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">Ver en listado</a>
+        </div>
+        <p class="empty" *ngIf="isLoadingDashboard">Cargando indicadores...</p>
+        <p class="empty" *ngIf="!isLoadingDashboard && attentionItems.length === 0">Sin alertas prioritarias.</p>
+        <div class="attention-list" *ngIf="attentionItems.length > 0">
+          <article class="attention-item" *ngFor="let item of attentionItems">
+            <div>
+              <strong>{{ item.negocio }}</strong>
+              <p>{{ item.modelo }} - {{ item.serial }}</p>
+            </div>
+            <div class="badge" [class.danger]="item.estado === 'Vencido'" [class.warning]="item.estado === 'Por vencer'">
+              {{ item.estado }}
+            </div>
+          </article>
+        </div>
+      </aside>
     </section>
   `,
   styles: `
@@ -141,17 +145,28 @@ interface DashboardItem {
       font-weight: 600;
     }
 
+    .menu-layout {
+      max-width: 1150px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 290px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .menu-main {
+      min-width: 0;
+    }
+
     .menu-grid {
-      max-width: 900px;
-      margin: 1.25rem auto 0;
+      margin: 1.25rem 0 0;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 1rem;
     }
 
     .stats-grid {
-      max-width: 900px;
-      margin: 0 auto 1rem;
+      margin: 0 0 1rem;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 0.85rem;
@@ -193,8 +208,7 @@ interface DashboardItem {
     }
 
     .quick-filters {
-      max-width: 900px;
-      margin: 0 auto 1rem;
+      margin: 0 0 1rem;
       display: flex;
       flex-wrap: wrap;
       gap: 0.6rem;
@@ -224,12 +238,14 @@ interface DashboardItem {
     }
 
     .attention-card {
-      max-width: 900px;
-      margin: 0 auto;
+      position: sticky;
+      top: 1rem;
       background: #ffffff;
       border: 1px solid #dbe3ee;
       border-radius: 12px;
-      padding: 1rem;
+      padding: 0.9rem;
+      max-height: calc(100vh - 2rem);
+      overflow: auto;
     }
 
     .attention-head {
@@ -255,13 +271,13 @@ interface DashboardItem {
 
     .attention-list {
       display: grid;
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .attention-item {
       border: 1px solid #e2e8f0;
       border-radius: 10px;
-      padding: 0.7rem;
+      padding: 0.6rem;
       display: flex;
       justify-content: space-between;
       gap: 0.75rem;
@@ -324,6 +340,18 @@ interface DashboardItem {
     .menu-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    @media (max-width: 980px) {
+      .menu-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .attention-card {
+        position: static;
+        max-height: none;
+        margin-top: 0.5rem;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
