@@ -177,13 +177,20 @@ export class Editar implements OnInit {
       if (!value) {
         return '';
       }
+
+      const isoMatch = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+      }
+
       const parsed = new Date(value);
       if (Number.isNaN(parsed.getTime())) {
         return value;
       }
-      const year = parsed.getFullYear();
-      const month = String(parsed.getMonth() + 1).padStart(2, '0');
-      const day = String(parsed.getDate()).padStart(2, '0');
+
+      const year = parsed.getUTCFullYear();
+      const month = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(parsed.getUTCDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
 
@@ -291,7 +298,17 @@ export class Editar implements OnInit {
     if (!value) {
       return null;
     }
-    const parsed = new Date(value);
+
+    const clean = value.trim();
+    const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const year = Number(isoMatch[1]);
+      const month = Number(isoMatch[2]) - 1;
+      const day = Number(isoMatch[3]);
+      return new Date(year, month, day);
+    }
+
+    const parsed = new Date(clean);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 

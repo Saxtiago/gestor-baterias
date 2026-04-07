@@ -1,13 +1,19 @@
-import { Component } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-baterias-menu',
-  imports: [RouterLink],
+  imports: [NgIf, RouterLink, HttpClientModule],
   template: `
     <section class="view-header">
       <h1>Gestión de Baterías</h1>
       <p>Selecciona la acción que deseas realizar.</p>
+      <p class="sync-status" *ngIf="isSyncing">Actualizando datos...</p>
+      <p class="sync-status error" *ngIf="syncError">{{ syncError }}</p>
       <a class="back-link" routerLink="/">← Volver a módulos</a>
     </section>
 
@@ -49,6 +55,15 @@ import { RouterLink } from '@angular/router';
     .view-header p {
       margin-top: 0.75rem;
       color: #4b5563;
+    }
+
+    .sync-status {
+      font-weight: 600;
+      color: #0f766e;
+    }
+
+    .sync-status.error {
+      color: #b91c1c;
     }
 
     .back-link {
@@ -94,5 +109,38 @@ import { RouterLink } from '@angular/router';
       box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BateriasMenuComponent {}
+export class BateriasMenuComponent implements OnInit {
+  private readonly syncUrl = `${environment.apiBaseUrl}/api/baterias/sync`;
+
+  protected isSyncing = false;
+  protected syncError = '';
+
+  constructor(
+    private readonly http: HttpClient,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
+
+  ngOnInit(): void {
+    this.syncData();
+  }
+
+  private syncData(): void {
+    this.isSyncing = true;
+    this.syncError = '';
+    this.cdr.markForCheck();
+
+    this.http.post(this.syncUrl, {}).pipe(
+      finalize(() => {
+        this.isSyncing = false;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
+      error: () => {
+        this.syncError = 'No se pudo actualizar la informacion automaticamente.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+}
