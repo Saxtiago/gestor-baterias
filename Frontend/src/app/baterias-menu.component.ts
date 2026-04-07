@@ -509,14 +509,42 @@ export class BateriasMenuComponent implements OnInit {
       return '';
     };
 
-    const estado = get(['ESTADO', 'Estado']) || 'Vigente';
+    const parseDate = (value: string) => {
+      if (!value) {
+        return null;
+      }
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const computeEstado = (dueDateText: string) => {
+      const dueDate = parseDate(dueDateText);
+      if (!dueDate) {
+        return 'Vigente';
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((dueDate.getTime() - today.getTime()) / 86400000);
+      if (diffDays < 0) {
+        return 'Vencido';
+      }
+      if (diffDays <= 30) {
+        return 'Por vencer';
+      }
+      return 'Vigente';
+    };
+
+    const fechaVencimiento = get(['FECHA DE VENCIMIENTO', 'Fecha de vencimiento']);
+    const estadoApi = get(['ESTADO', 'Estado']);
+    const estado = estadoApi || computeEstado(fechaVencimiento);
 
     return {
       negocio: get(['Negocio']),
       modelo: get(['Modelo', 'Modelo/Referencia']),
       serial: get(['Serial', 'No Serial']),
       estado,
-      fechaVencimiento: get(['FECHA DE VENCIMIENTO', 'Fecha de vencimiento']),
+      fechaVencimiento,
     };
   }
 }

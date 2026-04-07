@@ -18,13 +18,6 @@
 	</label>
 </section>
 
-<section class="quick-filters">
-	<button class="filter-chip" type="button" [class.active]="estadoFilter === ''" (click)="setEstadoFilter('')">Todos</button>
-	<button class="filter-chip" type="button" [class.active]="estadoFilter === 'Vigente'" (click)="setEstadoFilter('Vigente')">Vigente</button>
-	<button class="filter-chip warning" type="button" [class.active]="estadoFilter === 'Por vencer'" (click)="setEstadoFilter('Por vencer')">Por vencer</button>
-	<button class="filter-chip danger" type="button" [class.active]="estadoFilter === 'Vencido'" (click)="setEstadoFilter('Vencido')">Vencido</button>
-</section>
-
 <section class="notice success" *ngIf="deletedMessage">{{ deletedMessage }}</section>
 <section class="notice error" *ngIf="errorMessage">{{ errorMessage }}</section>
 

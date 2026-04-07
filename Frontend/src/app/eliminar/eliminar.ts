@@ -37,7 +37,6 @@ export class Eliminar implements OnInit {
   private readonly refreshSubject = new Subject<void>();
 
   protected searchText = '';
-  protected estadoFilter = '';
   protected selectedRegistro: RegistroEliminar | null = null;
   protected isLoading = false;
   protected isDeleting = false;
@@ -89,13 +88,7 @@ export class Eliminar implements OnInit {
   }
 
   get exportUrl(): string {
-    const estado = this.estadoFilter || 'all';
-    return `${this.exportBaseUrl}?estado=${encodeURIComponent(estado)}`;
-  }
-
-  setEstadoFilter(estado: string): void {
-    this.estadoFilter = estado;
-    this.cdr.markForCheck();
+    return `${this.exportBaseUrl}?estado=${encodeURIComponent('all')}`;
   }
 
   onRefresh(): void {
@@ -180,20 +173,15 @@ export class Eliminar implements OnInit {
 
   private applyFilters(registros: RegistroEliminar[], searchText: string): RegistroEliminar[] {
     const texto = searchText.trim().toLowerCase();
-    return registros.filter((registro) => {
-      const estadoOk = !this.estadoFilter || registro.estado === this.estadoFilter;
-      if (!estadoOk) {
-        return false;
-      }
+    if (!texto) {
+      return registros;
+    }
 
-      if (!texto) {
-        return true;
-      }
-
-      return Object.values(registro).some((value) =>
+    return registros.filter((registro) =>
+      Object.values(registro).some((value) =>
         String(value).toLowerCase().includes(texto),
-      );
-    });
+      ),
+    );
   }
 
   private mapRegistro(registro: RegistroApi): RegistroEliminar {
