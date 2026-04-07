@@ -1,5 +1,6 @@
 
 import calendar
+from io import BytesIO
 import os
 import re
 import traceback
@@ -8,7 +9,7 @@ import uuid
 from datetime import date, datetime, timedelta
 from calendar import monthrange
 from typing import Dict, Optional
-from flask import Flask, jsonify, request, render_template, redirect
+from flask import Flask, jsonify, request, render_template, redirect, send_file
 from flask_cors import CORS
 from azure.data.tables import TableServiceClient, UpdateMode
 from azure.core.exceptions import ResourceNotFoundError
@@ -500,6 +501,64 @@ def sincronizar_baterias():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Error al sincronizar los registros: {str(e)}"}), 500
+
+
+@app.route('/api/baterias/export', methods=['GET'])
+def exportar_baterias_excel():
+    try:
+        if using_azure_table_storage():
+            table_client = get_table_client()
+            entities = list(table_client.query_entities(
+                f"PartitionKey eq '{PARTITION_KEY}'"
+            ))
+            records = [record_from_entity(entity) for entity in entities]
+
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            headers = [*COLUMNAS, ROW_ID_COLUMN]
+            sheet.append(headers)
+
+            for record in records:
+                sheet.append([
+                    record.get('COD', ''),
+                    record.get('Negocio', ''),
+                    record.get('UPS Marca', ''),
+                    record.get('Modelo', ''),
+                    record.get('Capacidad', ''),
+                    record.get('Serial', ''),
+                    record.get('Inventario No', ''),
+                    record.get('FECHA DE INSTALACION', ''),
+                    record.get('REFERENCIA', ''),
+                    record.get('CANTIDAD', ''),
+                    record.get('FECHA DE VENCIMIENTO', ''),
+                    record.get('ESTADO', ''),
+                    record.get('DIAS VENCIDOS', ''),
+                    record.get('AÑOS/ MESES/ DIAS', ''),
+                    record.get('rowId', ''),
+                ])
+
+            output = BytesIO()
+            workbook.save(output)
+            output.seek(0)
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name='baterias_export.xlsx',
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+
+        records = load_excel_records()
+        updated_records = [compute_excel_fields(dict(record)) for record in records]
+        save_excel_records(updated_records)
+        return send_file(
+            EXCEL_DATA_FILE,
+            as_attachment=True,
+            download_name=os.path.basename(EXCEL_DATA_FILE),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al exportar Excel: {str(e)}"}), 500
 
 
 
