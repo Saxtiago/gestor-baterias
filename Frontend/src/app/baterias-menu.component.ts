@@ -100,7 +100,7 @@ interface DashboardItem {
       <aside class="attention-card">
         <div class="attention-head">
           <h2>Atención hoy</h2>
-          <a routerLink="/modulos/baterias/listar" [queryParams]="{ estado: 'Por vencer' }">Ver en listado</a>
+          <a routerLink="/modulos/baterias/listar" [queryParams]="{ estados: 'Vencido,Por vencer' }">Ver en listado</a>
         </div>
         <p class="empty" *ngIf="isLoadingDashboard">Cargando indicadores...</p>
         <p class="empty" *ngIf="!isLoadingDashboard && attentionItems.length === 0">Sin alertas prioritarias.</p>

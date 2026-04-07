@@ -189,18 +189,25 @@ export class Listar implements OnInit {
 
   private applyInitialFiltersFromQuery(): void {
     const queryParams = this.route.snapshot.queryParamMap;
-    const estado = queryParams.get('estado')?.trim() ?? '';
+    const estadosParam = queryParams.get('estados')?.trim() ?? '';
+    const estadoParam = queryParams.get('estado')?.trim() ?? '';
     const searchText = queryParams.get('q')?.trim() ?? '';
     const negocio = queryParams.get('negocio')?.trim() ?? '';
     const marca = queryParams.get('marca')?.trim() ?? '';
     const fechaDesde = queryParams.get('desde')?.trim() ?? '';
     const fechaHasta = queryParams.get('hasta')?.trim() ?? '';
 
-    if (!estado && !searchText && !negocio && !marca && !fechaDesde && !fechaHasta) {
+    if (!estadosParam && !estadoParam && !searchText && !negocio && !marca && !fechaDesde && !fechaHasta) {
       return;
     }
 
-    this.selectedEstados = this.estados.includes(estado) ? [estado] : [];
+    // Parsear múltiples estados (separados por coma) o un único estado
+    if (estadosParam) {
+      this.selectedEstados = estadosParam.split(',').map((e) => e.trim()).filter((e) => this.estados.includes(e));
+    } else if (estadoParam) {
+      this.selectedEstados = this.estados.includes(estadoParam) ? [estadoParam] : [];
+    }
+
     this.searchText = searchText;
     this.negocioFilter = negocio;
     this.marcaFilter = marca;
