@@ -4,15 +4,12 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
-import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration } from 'chart.js';
 import { environment } from '../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
 
 interface DashboardItem {
   negocio: string;
-  upsMarca: string;
   modelo: string;
   serial: string;
   estado: string;
@@ -21,7 +18,7 @@ interface DashboardItem {
 
 @Component({
   selector: 'app-baterias-menu',
-  imports: [FormsModule, NgFor, NgIf, RouterLink, HttpClientModule, BaseChartDirective],
+  imports: [FormsModule, NgFor, NgIf, RouterLink, HttpClientModule],
   template: `
     <section class="view-header">
       <h1>Gestión de Baterías</h1>
@@ -49,32 +46,6 @@ interface DashboardItem {
           <article class="stat-card ok">
             <span>Vigentes</span>
             <strong>{{ totalVigentes }}</strong>
-          </article>
-        </section>
-
-        <section class="dashboard-charts">
-          <article class="chart-panel">
-            <h3>Distribucion por estado</h3>
-            <div class="chart-canvas pie">
-              <canvas
-                baseChart
-                [type]="'pie'"
-                [data]="estadoPieData"
-                [options]="estadoPieOptions"
-              ></canvas>
-            </div>
-          </article>
-
-          <article class="chart-panel">
-            <h3>Vencimientos por fecha</h3>
-            <div class="chart-canvas bar">
-              <canvas
-                baseChart
-                [type]="'bar'"
-                [data]="marcaBarData"
-                [options]="marcaBarOptions"
-              ></canvas>
-            </div>
           </article>
         </section>
 
@@ -234,43 +205,6 @@ interface DashboardItem {
     .stat-card.ok {
       border-color: #14532d;
       background: #11281d;
-    }
-
-    .dashboard-charts {
-      margin: 0 0 0.85rem;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.7rem;
-    }
-
-    .chart-panel {
-      background: #0f172a;
-      border: 1px solid #2b3a52;
-      border-radius: 12px;
-      padding: 0.7rem;
-    }
-
-    .chart-panel h3 {
-      margin: 0 0 0.45rem;
-      color: #e2e8f0;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .chart-canvas {
-      position: relative;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 0.4rem;
-      background: #0b1220;
-    }
-
-    .chart-canvas.pie {
-      height: 210px;
-    }
-
-    .chart-canvas.bar {
-      height: 210px;
     }
 
     .attention-card {
@@ -451,10 +385,6 @@ interface DashboardItem {
         grid-template-columns: 1fr;
       }
 
-      .dashboard-charts {
-        grid-template-columns: 1fr;
-      }
-
       .menu-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-areas:
@@ -497,83 +427,6 @@ export class BateriasMenuComponent implements OnInit {
   protected totalPorVencer = 0;
   protected totalVigentes = 0;
   protected attentionItems: DashboardItem[] = [];
-  protected estadoPieData: ChartConfiguration<'pie'>['data'] = {
-    labels: ['Vigentes', 'Por vencer', 'Vencidas'],
-    datasets: [
-      {
-        data: [0, 0, 0],
-        backgroundColor: ['#22d3ee', '#f59e0b', '#ef4444'],
-        borderColor: '#0f172a',
-        borderWidth: 2,
-        hoverOffset: 8,
-      },
-    ],
-  };
-  protected marcaBarData: ChartConfiguration<'bar'>['data'] = {
-    labels: [],
-    datasets: [
-      {
-        data: [],
-        backgroundColor: '#0ea5e9',
-        borderColor: '#38bdf8',
-        borderWidth: 1,
-        borderRadius: 6,
-        maxBarThickness: 26,
-      },
-    ],
-  };
-  protected readonly estadoPieOptions: ChartConfiguration<'pie'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#cbd5e1',
-          usePointStyle: true,
-          boxWidth: 10,
-          boxHeight: 10,
-        },
-      },
-      tooltip: {
-        backgroundColor: '#0b1220',
-        borderColor: '#334155',
-        borderWidth: 1,
-        titleColor: '#f8fafc',
-        bodyColor: '#cbd5e1',
-      },
-    },
-  };
-  protected readonly marcaBarOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#0b1220',
-        borderColor: '#334155',
-        borderWidth: 1,
-        titleColor: '#f8fafc',
-        bodyColor: '#cbd5e1',
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: '#94a3b8', font: { size: 11 } },
-        grid: { color: 'rgba(148, 163, 184, 0.15)' },
-      },
-      y: {
-        beginAtZero: true,
-        ticks: {
-          color: '#94a3b8',
-          precision: 0,
-          stepSize: 1,
-          font: { size: 11 },
-        },
-        grid: { color: 'rgba(148, 163, 184, 0.15)' },
-      },
-    },
-  };
   protected exportFilter = 'all';
   protected readonly exportOptions = [
     { value: 'all', label: 'Todo' },
@@ -632,86 +485,12 @@ export class BateriasMenuComponent implements OnInit {
         this.totalPorVencer = mapped.filter((item) => item.estado === 'Por vencer').length;
         this.totalVigentes = mapped.filter((item) => item.estado === 'Vigente').length;
 
-        this.estadoPieData = {
-          labels: ['Vigentes', 'Por vencer', 'Vencidas'],
-          datasets: [
-            {
-              data: [this.totalVigentes, this.totalPorVencer, this.totalVencidas],
-              backgroundColor: ['#22d3ee', '#f59e0b', '#ef4444'],
-              borderColor: '#0f172a',
-              borderWidth: 2,
-              hoverOffset: 8,
-            },
-          ],
-        };
-
-        const fechasVencimiento = Array.from(
-          mapped.reduce<Map<string, number>>((acc, item) => {
-            if (item.estado === 'Vencido') {
-              return acc;
-            }
-
-            const dueDate = this.parseDashboardDate(item.fechaVencimiento);
-            if (!dueDate) {
-              return acc;
-            }
-
-            const isoDate = dueDate.toISOString().slice(0, 10);
-            acc.set(isoDate, (acc.get(isoDate) ?? 0) + 1);
-            return acc;
-          }, new Map<string, number>()),
-        )
-          .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-          .slice(0, 10)
-          .map(([isoDate, count]) => ({
-            label: this.formatDashboardDateLabel(isoDate),
-            count,
-          }));
-
-        this.marcaBarData = {
-          labels: fechasVencimiento.map((item) => item.label),
-          datasets: [
-            {
-              data: fechasVencimiento.map((item) => item.count),
-              backgroundColor: '#0ea5e9',
-              borderColor: '#38bdf8',
-              borderWidth: 1,
-              borderRadius: 6,
-              maxBarThickness: 26,
-            },
-          ],
-        };
-
         this.attentionItems = mapped
           .filter((item) => item.estado === 'Por vencer')
           .slice(0, 6);
       },
       error: () => {
         this.attentionItems = [];
-        this.estadoPieData = {
-          labels: ['Vigentes', 'Por vencer', 'Vencidas'],
-          datasets: [
-            {
-              data: [0, 0, 0],
-              backgroundColor: ['#22d3ee', '#f59e0b', '#ef4444'],
-              borderColor: '#0f172a',
-              borderWidth: 2,
-            },
-          ],
-        };
-        this.marcaBarData = {
-          labels: [],
-          datasets: [
-            {
-              data: [],
-              backgroundColor: '#0ea5e9',
-              borderColor: '#38bdf8',
-              borderWidth: 1,
-              borderRadius: 6,
-              maxBarThickness: 26,
-            },
-          ],
-        };
       },
     });
   }
@@ -772,44 +551,10 @@ export class BateriasMenuComponent implements OnInit {
 
     return {
       negocio: get(['Negocio']),
-      upsMarca: get(['UPS Marca', 'UPS marca', 'UPS_Marca']),
       modelo: get(['Modelo', 'Modelo/Referencia']),
       serial: get(['Serial', 'No Serial']),
       estado,
       fechaVencimiento,
     };
-  }
-
-  private parseDashboardDate(value: string): Date | null {
-    const raw = value.trim();
-    if (!raw) {
-      return null;
-    }
-
-    const ymdMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (ymdMatch) {
-      const parsed = new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
-      parsed.setHours(0, 0, 0, 0);
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-
-    const dmyMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (dmyMatch) {
-      const parsed = new Date(Number(dmyMatch[3]), Number(dmyMatch[2]) - 1, Number(dmyMatch[1]));
-      parsed.setHours(0, 0, 0, 0);
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-
-    const fallback = new Date(raw);
-    fallback.setHours(0, 0, 0, 0);
-    return Number.isNaN(fallback.getTime()) ? null : fallback;
-  }
-
-  private formatDashboardDateLabel(isoDate: string): string {
-    const [year, month, day] = isoDate.split('-');
-    if (!year || !month || !day) {
-      return isoDate;
-    }
-    return `${day}/${month}/${year}`;
   }
 }
