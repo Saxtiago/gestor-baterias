@@ -151,6 +151,20 @@
 	gap: 0.45rem;
 }
 
+.chart-canvas {
+	position: relative;
+	height: 220px;
+	margin-bottom: 0.7rem;
+	padding: 0.45rem;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	background: #0b1220;
+}
+
+.chart-canvas-bar {
+	height: 240px;
+}
+
 .chart-row {
 	border: 1px solid #334155;
 	border-radius: 10px;

@@ -55,6 +55,14 @@
 
 		<section class="panel-block">
 			<h3>Estado</h3>
+			<div class="chart-canvas" *ngIf="estadoPieData$ | async as estadoPieData">
+				<canvas
+					baseChart
+					[type]="'pie'"
+					[data]="estadoPieData"
+					[options]="estadoPieOptions"
+				></canvas>
+			</div>
 			<div class="chart-list" *ngIf="estadoChart$ | async as estadoChart">
 				<button
 					type="button"
@@ -76,6 +84,14 @@
 
 		<section class="panel-block">
 			<h3>Marcas (Top)</h3>
+			<div class="chart-canvas chart-canvas-bar" *ngIf="marcaBarData$ | async as marcaBarData">
+				<canvas
+					baseChart
+					[type]="'bar'"
+					[data]="marcaBarData"
+					[options]="marcaBarOptions"
+				></canvas>
+			</div>
 			<div class="chart-list" *ngIf="marcaChart$ | async as marcaChart">
 				<button
 					type="button"

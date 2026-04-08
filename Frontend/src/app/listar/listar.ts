@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BehaviorSubject, Observable, Subject, asyncScheduler, catchError, combineLatest, finalize, map, observeOn, of, shareReplay, startWith, switchMap } from 'rxjs';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration } from 'chart.js';
 import { environment } from '../../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
@@ -40,7 +42,7 @@ interface ChartItem {
 
 @Component({
   selector: 'app-listar',
-  imports: [AsyncPipe, FormsModule, NgFor, NgIf, RouterLink, HttpClientModule],
+  imports: [AsyncPipe, FormsModule, NgFor, NgIf, RouterLink, HttpClientModule, BaseChartDirective],
   templateUrl: './listar.html',
   styleUrl: './listar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,6 +76,60 @@ export class Listar implements OnInit {
   protected estadoChart$!: Observable<ChartItem[]>;
   protected marcaChart$!: Observable<ChartItem[]>;
   protected marcasDisponibles$!: Observable<string[]>;
+  protected estadoPieData$!: Observable<ChartConfiguration<'pie'>['data']>;
+  protected marcaBarData$!: Observable<ChartConfiguration<'bar'>['data']>;
+  protected readonly estadoPieOptions: ChartConfiguration<'pie'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#cbd5e1',
+          usePointStyle: true,
+          boxWidth: 10,
+          boxHeight: 10,
+        },
+      },
+      tooltip: {
+        backgroundColor: '#0b1220',
+        borderColor: '#334155',
+        borderWidth: 1,
+        titleColor: '#f8fafc',
+        bodyColor: '#cbd5e1',
+      },
+    },
+  };
+  protected readonly marcaBarOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0b1220',
+        borderColor: '#334155',
+        borderWidth: 1,
+        titleColor: '#f8fafc',
+        bodyColor: '#cbd5e1',
+      },
+    },
+    scales: {
+      x: {
+        ticks: { color: '#94a3b8', font: { size: 11 } },
+        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: '#94a3b8',
+          precision: 0,
+          stepSize: 1,
+          font: { size: 11 },
+        },
+        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+      },
+    },
+  };
 
   constructor(
     private readonly http: HttpClient,
@@ -161,6 +217,41 @@ export class Listar implements OnInit {
         this.maxMarcaCount = Math.max(1, ...chart.map((item) => item.count));
         return chart;
       }),
+      observeOn(asyncScheduler),
+      shareReplay(1),
+    );
+
+    this.estadoPieData$ = this.estadoChart$.pipe(
+      map((chart) => ({
+        labels: chart.map((item) => item.label),
+        datasets: [
+          {
+            data: chart.map((item) => item.count),
+            backgroundColor: ['#22d3ee', '#f59e0b', '#ef4444'],
+            borderColor: '#0f172a',
+            borderWidth: 2,
+            hoverOffset: 8,
+          },
+        ],
+      })),
+      observeOn(asyncScheduler),
+      shareReplay(1),
+    );
+
+    this.marcaBarData$ = this.marcaChart$.pipe(
+      map((chart) => ({
+        labels: chart.map((item) => item.label),
+        datasets: [
+          {
+            data: chart.map((item) => item.count),
+            backgroundColor: '#0ea5e9',
+            borderColor: '#38bdf8',
+            borderWidth: 1,
+            borderRadius: 6,
+            maxBarThickness: 26,
+          },
+        ],
+      })),
       observeOn(asyncScheduler),
       shareReplay(1),
     );
