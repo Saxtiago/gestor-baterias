@@ -208,6 +208,7 @@ export class Editar implements OnInit {
       { key: 'capacidad', label: 'Capacidad' },
       { key: 'serial', label: 'Serial' },
       { key: 'inventarioNo', label: 'Inventario No' },
+      { key: 'fechaInstalacion', label: 'Fecha de instalacion' },
       { key: 'referencia', label: 'Referencia' },
       { key: 'cantidad', label: 'Cantidad' },
     ];
