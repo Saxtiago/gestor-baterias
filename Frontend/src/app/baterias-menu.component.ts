@@ -66,7 +66,7 @@ interface DashboardItem {
           </article>
 
           <article class="chart-panel">
-            <h3>Top marcas UPS</h3>
+            <h3>Vencimientos por fecha</h3>
             <div class="chart-canvas bar">
               <canvas
                 baseChart
@@ -645,22 +645,34 @@ export class BateriasMenuComponent implements OnInit {
           ],
         };
 
-        const marcasTop = Array.from(
+        const fechasVencimiento = Array.from(
           mapped.reduce<Map<string, number>>((acc, item) => {
-            const marca = item.upsMarca || 'Sin marca';
-            acc.set(marca, (acc.get(marca) ?? 0) + 1);
+            if (item.estado === 'Vencido') {
+              return acc;
+            }
+
+            const dueDate = this.parseDashboardDate(item.fechaVencimiento);
+            if (!dueDate) {
+              return acc;
+            }
+
+            const isoDate = dueDate.toISOString().slice(0, 10);
+            acc.set(isoDate, (acc.get(isoDate) ?? 0) + 1);
             return acc;
           }, new Map<string, number>()),
         )
-          .map(([label, count]) => ({ label, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 8);
+          .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+          .slice(0, 10)
+          .map(([isoDate, count]) => ({
+            label: this.formatDashboardDateLabel(isoDate),
+            count,
+          }));
 
         this.marcaBarData = {
-          labels: marcasTop.map((item) => item.label),
+          labels: fechasVencimiento.map((item) => item.label),
           datasets: [
             {
-              data: marcasTop.map((item) => item.count),
+              data: fechasVencimiento.map((item) => item.count),
               backgroundColor: '#0ea5e9',
               borderColor: '#38bdf8',
               borderWidth: 1,
@@ -766,5 +778,38 @@ export class BateriasMenuComponent implements OnInit {
       estado,
       fechaVencimiento,
     };
+  }
+
+  private parseDashboardDate(value: string): Date | null {
+    const raw = value.trim();
+    if (!raw) {
+      return null;
+    }
+
+    const ymdMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (ymdMatch) {
+      const parsed = new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
+      parsed.setHours(0, 0, 0, 0);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const dmyMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (dmyMatch) {
+      const parsed = new Date(Number(dmyMatch[3]), Number(dmyMatch[2]) - 1, Number(dmyMatch[1]));
+      parsed.setHours(0, 0, 0, 0);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    const fallback = new Date(raw);
+    fallback.setHours(0, 0, 0, 0);
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
+  }
+
+  private formatDashboardDateLabel(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-');
+    if (!year || !month || !day) {
+      return isoDate;
+    }
+    return `${day}/${month}/${year}`;
   }
 }
