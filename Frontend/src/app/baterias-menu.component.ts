@@ -161,7 +161,8 @@ interface DashboardItem {
         'agregar listar exportar'
         'editar eliminar exportar';
       grid-auto-rows: minmax(180px, auto);
-      gap: 1.25rem;
+      column-gap: 1.5rem;
+      row-gap: 1.35rem;
       align-items: stretch;
     }
 
@@ -302,6 +303,10 @@ interface DashboardItem {
       min-height: 100%;
     }
 
+    .menu-grid > .menu-card:not(.export-card) {
+      min-height: 185px;
+    }
+
     .menu-grid > .menu-card:nth-child(1) {
       grid-area: agregar;
     }
@@ -391,7 +396,8 @@ interface DashboardItem {
           'agregar listar'
           'exportar exportar'
           'editar eliminar';
-        gap: 1rem;
+        column-gap: 1rem;
+        row-gap: 1rem;
       }
 
       .attention-card {
@@ -410,7 +416,11 @@ interface DashboardItem {
           'exportar'
           'editar'
           'eliminar';
-        gap: 0.9rem;
+        row-gap: 0.95rem;
+      }
+
+      .menu-grid > .menu-card:not(.export-card) {
+        min-height: 0;
       }
     }
   `,
