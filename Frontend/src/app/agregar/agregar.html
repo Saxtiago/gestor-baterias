@@ -91,10 +91,7 @@
 	</div>
 
 	<div class="actions">
-		<button class="btn primary" type="submit" [disabled]="isSaving || isSavingAndContinue">Guardar</button>
-		<button class="btn primary alt" type="button" (click)="onSubmitAndContinue()" [disabled]="isSaving || isSavingAndContinue">
-			Guardar y agregar otro
-		</button>
+		<button class="btn primary" type="submit" [disabled]="isSaving">Guardar</button>
 		<button class="btn ghost" type="button" (click)="onReset()">Limpiar</button>
 	</div>
 </form>

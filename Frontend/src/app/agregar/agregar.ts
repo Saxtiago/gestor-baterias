@@ -67,7 +67,6 @@ export class Agregar {
   protected savedMessage = '';
   protected errorMessage = '';
   protected isSaving = false;
-  protected isSavingAndContinue = false;
 
   constructor(
     private readonly http: HttpClient,
@@ -138,18 +137,14 @@ export class Agregar {
   }
 
   onSubmit(): void {
-    this.submitWithMode(false);
-  }
-
-  onSubmitAndContinue(): void {
-    this.submitWithMode(true);
+    this.submitRecord();
   }
 
   onClearForm(): void {
     this.onReset();
   }
 
-  private submitWithMode(keepForm: boolean): void {
+  private submitRecord(): void {
     this.savedMessage = '';
     this.errorMessage = '';
     if (this.batteryForm.invalid) {
@@ -163,8 +158,7 @@ export class Agregar {
       return;
     }
 
-    this.isSaving = !keepForm;
-    this.isSavingAndContinue = keepForm;
+    this.isSaving = true;
     this.cdr.markForCheck();
     const payload = this.buildPayload();
     const serialSaved = this.batteryForm.controls.serial.value.trim().toLowerCase();
@@ -172,22 +166,14 @@ export class Agregar {
     this.http.post(this.apiUrl, payload).pipe(
       finalize(() => {
         this.isSaving = false;
-        this.isSavingAndContinue = false;
         this.cdr.markForCheck();
       }),
     ).subscribe({
       next: () => {
-        this.savedMessage = keepForm
-          ? 'Registro guardado. Puedes agregar otro.'
-          : 'Registro guardado.';
+        this.savedMessage = 'Registro guardado.';
 
         if (serialSaved) {
           this.existingSerials.add(serialSaved);
-        }
-
-        if (keepForm) {
-          this.resetForNextEntry();
-          return;
         }
 
         this.onReset();
@@ -219,23 +205,6 @@ export class Agregar {
 
   onRefreshData(): void {
     this.loadExistingSerials();
-  }
-
-  private resetForNextEntry(): void {
-    const current = this.batteryForm.getRawValue();
-    this.batteryForm.reset({
-      cod: '',
-      negocio: current.negocio,
-      upsMarca: current.upsMarca,
-      modelo: current.modelo,
-      capacidad: current.capacidad,
-      serial: '',
-      inventarioNo: '',
-      fechaInstalacion: '',
-      referencia: current.referencia,
-      cantidad: 1,
-    });
-    this.errorMessage = '';
   }
 
   private loadExistingSerials(): void {
