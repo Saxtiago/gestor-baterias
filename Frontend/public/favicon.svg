@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Gestion">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="gear" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7dd3fc" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)" />
+  <g transform="translate(32 32)">
+    <circle r="11" fill="none" stroke="url(#gear)" stroke-width="7" />
+    <circle r="5" fill="#020617" />
+    <g fill="url(#gear)">
+      <rect x="-2" y="-24" width="4" height="10" rx="1.5" />
+      <rect x="-2" y="14" width="4" height="10" rx="1.5" />
+      <rect x="-24" y="-2" width="10" height="4" rx="1.5" />
+      <rect x="14" y="-2" width="10" height="4" rx="1.5" />
+      <rect x="-2" y="-24" width="4" height="10" rx="1.5" transform="rotate(45)" />
+      <rect x="-2" y="-24" width="4" height="10" rx="1.5" transform="rotate(90)" />
+      <rect x="-2" y="-24" width="4" height="10" rx="1.5" transform="rotate(135)" />
+    </g>
+  </g>
+</svg>
