@@ -64,6 +64,10 @@
 			Mostrando {{ filteredSelectedRegistros.length }} de {{ selectedRegistros.length }} registros.
 		</p>
 
+		<p class="record-scroll-hint" *ngIf="filteredSelectedRegistros.length > 1">
+			Desplazate dentro de esta barra para revisar los registros sin mover la ventana completa.
+		</p>
+
 		<section class="changes-card" *ngIf="hasUnsavedChanges">
 			<h3>Resumen de cambios</h3>
 			<div class="changes-list">

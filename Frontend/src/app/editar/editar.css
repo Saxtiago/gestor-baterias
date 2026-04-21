@@ -161,6 +161,16 @@
 	color: #94a3b8;
 }
 
+.record-scroll-hint {
+	margin: 0 0 0.75rem;
+	padding: 0.55rem 0.75rem;
+	border-radius: 10px;
+	border: 1px solid #22314a;
+	background: #0f172a;
+	font-size: 0.82rem;
+	color: #94a3b8;
+}
+
 .form-card {
 	margin: 0;
 	background: #0f172a;
@@ -177,6 +187,12 @@
 	display: grid;
 	gap: 1rem;
 	margin-top: 1rem;
+	max-height: 58vh;
+	overflow-y: auto;
+	padding-right: 0.35rem;
+	scroll-snap-type: y proximity;
+	scrollbar-color: #334155 #0f172a;
+	scroll-behavior: smooth;
 }
 
 .record-card {
@@ -184,6 +200,22 @@
 	border-radius: 14px;
 	padding: 1rem;
 	background: #111827;
+	scroll-snap-align: start;
+}
+
+.record-stack::-webkit-scrollbar {
+	width: 10px;
+}
+
+.record-stack::-webkit-scrollbar-track {
+	background: #0f172a;
+	border-radius: 999px;
+}
+
+.record-stack::-webkit-scrollbar-thumb {
+	background: #334155;
+	border-radius: 999px;
+	border: 2px solid #0f172a;
 }
 
 .record-card__header {
@@ -378,6 +410,10 @@
 
 	.record-meta {
 		align-items: flex-start;
+	}
+
+	.record-stack {
+		max-height: 52vh;
 	}
 
 	.form-card {
