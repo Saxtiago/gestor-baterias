@@ -536,6 +536,9 @@ def compute_balanzas_fields(record: dict[str, str]) -> dict[str, str]:
             record['FECHA DE VENCIMIENTO'] = due_date.strftime('%Y-%m-%d')
 
     if due_date is None:
+        record['FECHA DE VENCIMIENTO'] = ''
+        record['ESTADO'] = 'Desconocido'
+        record['DIAS VENCIDOS'] = ''
         return record
 
     today = date.today()
@@ -578,7 +581,7 @@ def build_balanzas_computed_values(fecha_certificacion_raw: str) -> Dict[str, st
     if not fecha_certificacion:
         return {
             'FECHA DE VENCIMIENTO': '',
-            'ESTADO': '',
+            'ESTADO': 'Desconocido',
             'DIAS VENCIDOS': '',
         }
 
