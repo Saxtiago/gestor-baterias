@@ -143,34 +143,6 @@
 	color: #94a3b8;
 }
 
-.record-search {
-	margin-bottom: 1rem;
-	padding: 0.8rem 0.85rem;
-	border: 1px solid #22314a;
-	border-radius: 12px;
-	background: #111827;
-}
-
-.record-search input {
-	margin-top: 0.35rem;
-}
-
-.record-search-hint {
-	margin: -0.35rem 0 1rem;
-	font-size: 0.82rem;
-	color: #94a3b8;
-}
-
-.record-scroll-hint {
-	margin: 0 0 0.75rem;
-	padding: 0.55rem 0.75rem;
-	border-radius: 10px;
-	border: 1px solid #22314a;
-	background: #0f172a;
-	font-size: 0.82rem;
-	color: #94a3b8;
-}
-
 .form-card {
 	margin: 0;
 	background: #0f172a;
@@ -178,8 +150,10 @@
 	padding: 1.15rem;
 	border: 1px solid #2b3a52;
 	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-	position: sticky;
-	top: 1rem;
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 2rem);
+	overflow: hidden;
 	align-self: start;
 }
 
@@ -187,7 +161,8 @@
 	display: grid;
 	gap: 1rem;
 	margin-top: 1rem;
-	max-height: 58vh;
+	flex: 1 1 auto;
+	min-height: 0;
 	overflow-y: auto;
 	padding-right: 0.35rem;
 	scroll-snap-type: y proximity;
@@ -341,6 +316,10 @@
 	align-items: center;
 	gap: 1rem;
 	flex-wrap: wrap;
+	position: sticky;
+	bottom: 0;
+	background: #0f172a;
+	padding-top: 0.8rem;
 }
 
 .btn {
@@ -401,6 +380,15 @@
 
 	.edit-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.form-card {
+		max-height: none;
+		overflow: visible;
+	}
+
+	.record-stack {
+		max-height: 52vh;
 	}
 
 	.group-header,
