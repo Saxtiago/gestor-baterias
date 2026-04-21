@@ -150,10 +150,6 @@
 	padding: 1.15rem;
 	border: 1px solid #2b3a52;
 	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-	display: flex;
-	flex-direction: column;
-	max-height: calc(100vh - 2rem);
-	overflow: hidden;
 	align-self: start;
 }
 
@@ -161,13 +157,7 @@
 	display: grid;
 	gap: 1rem;
 	margin-top: 1rem;
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow-y: auto;
-	padding-right: 0.35rem;
-	scroll-snap-type: y proximity;
-	scrollbar-color: #334155 #0f172a;
-	scroll-behavior: smooth;
+	padding-right: 0;
 }
 
 .record-card {
@@ -175,22 +165,6 @@
 	border-radius: 14px;
 	padding: 1rem;
 	background: #111827;
-	scroll-snap-align: start;
-}
-
-.record-stack::-webkit-scrollbar {
-	width: 10px;
-}
-
-.record-stack::-webkit-scrollbar-track {
-	background: #0f172a;
-	border-radius: 999px;
-}
-
-.record-stack::-webkit-scrollbar-thumb {
-	background: #334155;
-	border-radius: 999px;
-	border: 2px solid #0f172a;
 }
 
 .record-card__header {
@@ -316,10 +290,6 @@
 	align-items: center;
 	gap: 1rem;
 	flex-wrap: wrap;
-	position: sticky;
-	bottom: 0;
-	background: #0f172a;
-	padding-top: 0.8rem;
 }
 
 .btn {
@@ -382,15 +352,6 @@
 		grid-template-columns: 1fr;
 	}
 
-	.form-card {
-		max-height: none;
-		overflow: visible;
-	}
-
-	.record-stack {
-		max-height: 52vh;
-	}
-
 	.group-header,
 	.record-card__header {
 		flex-direction: column;
@@ -400,11 +361,4 @@
 		align-items: flex-start;
 	}
 
-	.record-stack {
-		max-height: 52vh;
-	}
-
-	.form-card {
-		position: static;
-	}
 }
