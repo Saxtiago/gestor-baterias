@@ -143,40 +143,22 @@
 	color: #94a3b8;
 }
 
-.record-nav {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	flex-wrap: wrap;
+.record-search {
 	margin-bottom: 1rem;
-	padding: 0.65rem 0.75rem;
+	padding: 0.8rem 0.85rem;
 	border: 1px solid #22314a;
 	border-radius: 12px;
 	background: #111827;
-	position: sticky;
-	top: 0.75rem;
-	z-index: 2;
 }
 
-.record-nav span {
+.record-search input {
+	margin-top: 0.35rem;
+}
+
+.record-search-hint {
+	margin: -0.35rem 0 1rem;
 	font-size: 0.82rem;
-	font-weight: 700;
-	color: #cbd5e1;
-}
-
-.record-nav__item {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 2rem;
-	height: 2rem;
-	padding: 0 0.55rem;
-	border-radius: 999px;
-	border: 1px solid #3b4b67;
-	color: #7dd3fc;
-	text-decoration: none;
-	font-weight: 700;
-	background: #0f172a;
+	color: #94a3b8;
 }
 
 .form-card {
@@ -202,7 +184,6 @@
 	border-radius: 14px;
 	padding: 1rem;
 	background: #111827;
-	scroll-margin-top: 6rem;
 }
 
 .record-card__header {
@@ -393,10 +374,6 @@
 	.group-header,
 	.record-card__header {
 		flex-direction: column;
-	}
-
-	.record-nav {
-		position: static;
 	}
 
 	.record-meta {

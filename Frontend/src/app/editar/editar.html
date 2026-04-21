@@ -51,16 +51,18 @@
 			<button class="btn ghost" type="button" (click)="onReset()">Cerrar</button>
 		</div>
 
-		<div class="record-nav" *ngIf="selectedRegistros.length > 1">
-			<span>Ir a registro:</span>
-			<a
-				class="record-nav__item"
-				href="#registro-{{ index + 1 }}"
-				*ngFor="let registro of selectedRegistros; let index = index"
-			>
-				{{ index + 1 }}
-			</a>
-		</div>
+		<label class="record-search field">
+			<span>Buscar dentro de este negocio</span>
+			<input
+				type="text"
+				[(ngModel)]="recordSearchText"
+				placeholder="COD, serial, modelo..."
+			/>
+		</label>
+
+		<p class="record-search-hint" *ngIf="recordSearchText.trim()">
+			Mostrando {{ filteredSelectedRegistros.length }} de {{ selectedRegistros.length }} registros.
+		</p>
 
 		<section class="changes-card" *ngIf="hasUnsavedChanges">
 			<h3>Resumen de cambios</h3>
@@ -74,7 +76,7 @@
 		</section>
 
 		<div class="record-stack">
-			<article class="record-card" [id]="'registro-' + (index + 1)" *ngFor="let registro of selectedRegistros; let index = index">
+			<article class="record-card" *ngFor="let registro of filteredSelectedRegistros; let index = index">
 				<header class="record-card__header">
 					<div>
 						<h3>Registro {{ index + 1 }}</h3>
