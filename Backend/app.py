@@ -24,8 +24,14 @@ EXCEL_DATA_FILE = os.getenv(
     'EXCEL_DATA_FILE',
     os.path.join(os.path.dirname(__file__), 'data', 'plantilla_baterias.xlsx'),
 )
+BALANZAS_TABLE_NAME = os.getenv('AZURE_BALANZAS_TABLE_NAME', 'balanzas')
+BALANZAS_EXCEL_DATA_FILE = os.getenv(
+    'BALANZAS_EXCEL_DATA_FILE',
+    os.path.join(os.path.dirname(__file__), 'data', 'Balanzas.xlsx'),
+)
 FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL', '').strip()
 PARTITION_KEY = 'baterias'
+BALANZAS_PARTITION_KEY = 'balanzas'
 ROW_ID_COLUMN = 'rowId'
 
 COLUMNAS = [
@@ -45,6 +51,23 @@ COLUMNAS = [
     'AÑOS/ MESES/ DIAS',
 ]
 
+BALANZAS_COLUMNAS = [
+    'COD',
+    'Negocio',
+    'Marca',
+    'Modelo',
+    'Ubicación',
+    'Activo',
+    'Serial',
+    'FECHA CERTIFICACION - COMPRA',
+    'NII',
+    'FECHA DE VENCIMIENTO',
+    'ESTADO',
+    'DIAS VENCIDOS',
+    'ACTAS',
+    'OBSERVACIONES',
+]
+
 
 def normalize_key(value: str) -> str:
     normalized = unicodedata.normalize('NFD', value)
@@ -57,6 +80,7 @@ def normalize_key(value: str) -> str:
 
 
 COLUMN_KEY_MAP = {col: normalize_key(col) for col in COLUMNAS}
+BALANZAS_COLUMN_KEY_MAP = {col: normalize_key(col) for col in BALANZAS_COLUMNAS}
 
 
 def get_table_client():
@@ -93,6 +117,8 @@ def redirect_to_frontend_or_api(path: str = ''):
         'api': {
             'baterias': '/api/baterias',
             'sync': '/api/baterias/sync',
+            'balanzas': '/api/balanzas',
+            'balanzas_sync': '/api/balanzas/sync',
         },
     }), 200
 
@@ -389,6 +415,185 @@ def build_computed_values(fecha_instalacion_raw: str) -> Dict[str, str]:
     }
 
 
+def get_balanzas_table_client():
+    if not STORAGE_CONNECTION_STRING:
+        raise ValueError('AZURE_STORAGE_CONNECTION_STRING no esta configurado.')
+
+    service = TableServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
+    service.create_table_if_not_exists(BALANZAS_TABLE_NAME)
+    return service.get_table_client(BALANZAS_TABLE_NAME)
+
+
+def format_excel_cell_value(value) -> str:
+    if value is None:
+        return ''
+
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+
+    if isinstance(value, date):
+        return value.isoformat()
+
+    return str(value).strip()
+
+
+def ensure_balanzas_excel_file_exists() -> None:
+    if not os.path.exists(BALANZAS_EXCEL_DATA_FILE):
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.append([*BALANZAS_COLUMNAS, ROW_ID_COLUMN])
+        workbook.save(BALANZAS_EXCEL_DATA_FILE)
+
+
+def find_balanzas_header_row(sheet) -> int:
+    max_probe = min(sheet.max_row, 25)
+
+    for row_index in range(1, max_probe + 1):
+        row_values = [normalize_header(sheet.cell(row=row_index, column=col_index).value) for col_index in range(1, max(15, sheet.max_column) + 1)]
+        normalized = {normalize_key(value) for value in row_values if value}
+        if {'cod', 'negocio'}.issubset(normalized):
+            return row_index
+
+    return 1
+
+
+def load_balanzas_records() -> list[dict[str, str]]:
+    ensure_balanzas_excel_file_exists()
+
+    workbook = openpyxl.load_workbook(BALANZAS_EXCEL_DATA_FILE)
+    sheet = workbook.active
+
+    header_row_index = find_balanzas_header_row(sheet)
+    headers = [normalize_header(cell.value) for cell in sheet[header_row_index]]
+
+    if not any(headers):
+        headers = [*BALANZAS_COLUMNAS, ROW_ID_COLUMN]
+        header_row_index = 1
+        for column_index, header in enumerate(headers, start=1):
+            sheet.cell(row=header_row_index, column=column_index).value = header
+
+    row_id_index = next(
+        (index for index, header in enumerate(headers) if header.lower() == ROW_ID_COLUMN.lower()),
+        -1,
+    )
+
+    if row_id_index == -1:
+        headers.append(ROW_ID_COLUMN)
+        row_id_index = len(headers) - 1
+        sheet.cell(row=header_row_index, column=len(headers)).value = ROW_ID_COLUMN
+
+    rows: list[dict[str, str]] = []
+    changed = False
+
+    for row_index in range(header_row_index + 1, sheet.max_row + 1):
+        row_values: dict[str, str] = {}
+        is_empty = True
+
+        for column_index, header in enumerate(headers, start=1):
+            value = format_excel_cell_value(sheet.cell(row=row_index, column=column_index).value)
+            row_values[header] = value
+            if value.strip():
+                is_empty = False
+
+        if is_empty:
+            continue
+
+        if not row_values.get(ROW_ID_COLUMN):
+            row_values[ROW_ID_COLUMN] = uuid.uuid4().hex
+            sheet.cell(row=row_index, column=row_id_index + 1).value = row_values[ROW_ID_COLUMN]
+            changed = True
+
+        rows.append(row_values)
+
+    if changed:
+        workbook.save(BALANZAS_EXCEL_DATA_FILE)
+
+    return rows
+
+
+def save_balanzas_records(records: list[dict[str, str]]) -> None:
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    headers = [*BALANZAS_COLUMNAS, ROW_ID_COLUMN]
+    sheet.append(headers)
+
+    for record in records:
+        sheet.append([record.get(header, '') for header in headers])
+
+    try:
+        workbook.save(BALANZAS_EXCEL_DATA_FILE)
+    except PermissionError as error:
+        raise IOError(
+            f"No se pudo guardar el archivo Excel '{BALANZAS_EXCEL_DATA_FILE}'. Ciérrelo si está abierto en otra aplicación."
+        ) from error
+
+
+def compute_balanzas_fields(record: dict[str, str]) -> dict[str, str]:
+    due_date = parse_date_string(record.get('FECHA DE VENCIMIENTO', ''))
+    if not due_date:
+        cert_date = parse_date_string(record.get('FECHA CERTIFICACION - COMPRA', ''))
+        if cert_date:
+            due_date = add_months(cert_date, 24)
+            record['FECHA DE VENCIMIENTO'] = due_date.strftime('%Y-%m-%d')
+
+    if due_date is None:
+        return record
+
+    today = date.today()
+    diff_days = (due_date - today).days
+    record['DIAS VENCIDOS'] = str(diff_days)
+    record['ESTADO'] = compute_estado(diff_days)
+    return record
+
+
+def build_balanzas_record(payload: dict, row_key: str) -> dict[str, str]:
+    record = {ROW_ID_COLUMN: row_key}
+    for col in BALANZAS_COLUMNAS:
+        record[col] = normalize_payload_value(get_payload_value(payload, col))
+    return compute_balanzas_fields(record)
+
+
+def find_balanzas_record_index(records: list[dict[str, str]], row_key: str) -> int:
+    for index, record in enumerate(records):
+        if record.get(ROW_ID_COLUMN) == row_key:
+            return index
+    return -1
+
+
+def build_balanzas_entity(payload: dict, row_key: str) -> dict:
+    entity = {'PartitionKey': BALANZAS_PARTITION_KEY, 'RowKey': row_key}
+    for col in BALANZAS_COLUMNAS:
+        column_key = BALANZAS_COLUMN_KEY_MAP[col]
+        entity[column_key] = normalize_payload_value(get_payload_value(payload, col))
+    return entity
+
+
+def balanza_record_from_entity(entity: dict) -> dict:
+    record = {col: str(entity.get(BALANZAS_COLUMN_KEY_MAP[col], '')) for col in BALANZAS_COLUMNAS}
+    record['rowId'] = entity.get('RowKey', '')
+    return record
+
+
+def build_balanzas_computed_values(fecha_certificacion_raw: str) -> Dict[str, str]:
+    fecha_certificacion = parse_date(fecha_certificacion_raw)
+    if not fecha_certificacion:
+        return {
+            'FECHA DE VENCIMIENTO': '',
+            'ESTADO': '',
+            'DIAS VENCIDOS': '',
+        }
+
+    fecha_vencimiento = add_months(fecha_certificacion, 24)
+    today = date.today()
+    diff_days = (fecha_vencimiento - today).days
+
+    return {
+        'FECHA DE VENCIMIENTO': fecha_vencimiento.isoformat(),
+        'ESTADO': compute_estado(diff_days),
+        'DIAS VENCIDOS': str(diff_days),
+    }
+
+
 @app.route('/')
 def index():
     return redirect_to_frontend_or_api()
@@ -396,6 +601,11 @@ def index():
 @app.route('/gestion_baterias')
 def gestion_baterias():
     return redirect_to_frontend_or_api('/modulos/baterias')
+
+
+@app.route('/gestion_balanzas')
+def gestion_balanzas():
+    return redirect_to_frontend_or_api('/modulos/balanzas')
 
 @app.route('/agregar')
 def agregar():
@@ -409,6 +619,21 @@ def editar():
 @app.route('/eliminar')
 def eliminar():
     return redirect_to_frontend_or_api('/modulos/baterias/eliminar')
+
+
+@app.route('/balanzas/agregar')
+def agregar_balanzas():
+    return redirect_to_frontend_or_api('/modulos/balanzas/agregar')
+
+
+@app.route('/balanzas/editar')
+def editar_balanzas():
+    return redirect_to_frontend_or_api('/modulos/balanzas/editar')
+
+
+@app.route('/balanzas/eliminar')
+def eliminar_balanzas():
+    return redirect_to_frontend_or_api('/modulos/balanzas/eliminar')
     
 @app.route('/api/baterias', methods=['GET'])
 def listar_baterias():
@@ -707,6 +932,274 @@ def eliminar_bateria(row_id: str):
                 return jsonify({"error": "Registro no encontrado"}), 404
             records.pop(index)
             save_excel_records(records)
+
+        return jsonify({"ok": True, "mensaje": "Registro eliminado"}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al eliminar el registro: {str(e)}"}), 500
+
+
+@app.route('/api/balanzas', methods=['GET'])
+def listar_balanzas():
+    try:
+        if using_azure_table_storage():
+            table_client = get_balanzas_table_client()
+            include_all = request.args.get('all', '').strip().lower() in {'1', 'true', 'yes'}
+            if include_all:
+                entities = table_client.list_entities()
+            else:
+                entities = table_client.query_entities(
+                    f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
+                )
+            data = [balanza_record_from_entity(entity) for entity in entities]
+        else:
+            data = load_balanzas_records()
+        return jsonify(data), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al consultar los registros: {str(e)}"}), 500
+
+
+@app.route('/api/balanzas/sync', methods=['POST'])
+def sincronizar_balanzas():
+    try:
+        if using_azure_table_storage():
+            table_client = get_balanzas_table_client()
+            entities = list(table_client.query_entities(
+                f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
+            ))
+
+            updated_count = 0
+            for entity in entities:
+                fecha_certificacion = str(entity.get(BALANZAS_COLUMN_KEY_MAP['FECHA CERTIFICACION - COMPRA'], '')).strip()
+                computed = build_balanzas_computed_values(fecha_certificacion)
+
+                patch = {
+                    'PartitionKey': entity['PartitionKey'],
+                    'RowKey': entity['RowKey'],
+                }
+                changed = False
+                for col_name, value in computed.items():
+                    key = BALANZAS_COLUMN_KEY_MAP[col_name]
+                    current_value = str(entity.get(key, ''))
+                    if current_value != value:
+                        patch[key] = value
+                        changed = True
+
+                if changed:
+                    table_client.update_entity(patch, mode=UpdateMode.MERGE)
+                    updated_count += 1
+
+            return jsonify({
+                'ok': True,
+                'updated': updated_count,
+                'total': len(entities),
+                'source': 'azure-table',
+            }), 200
+
+        records = load_balanzas_records()
+        updated_count = 0
+        synced_records: list[dict[str, str]] = []
+
+        for record in records:
+            before = {
+                'FECHA DE VENCIMIENTO': str(record.get('FECHA DE VENCIMIENTO', '')),
+                'ESTADO': str(record.get('ESTADO', '')),
+                'DIAS VENCIDOS': str(record.get('DIAS VENCIDOS', '')),
+            }
+            updated = compute_balanzas_fields(dict(record))
+            after = {
+                'FECHA DE VENCIMIENTO': str(updated.get('FECHA DE VENCIMIENTO', '')),
+                'ESTADO': str(updated.get('ESTADO', '')),
+                'DIAS VENCIDOS': str(updated.get('DIAS VENCIDOS', '')),
+            }
+            if before != after:
+                updated_count += 1
+            synced_records.append(updated)
+
+        save_balanzas_records(synced_records)
+        return jsonify({
+            'ok': True,
+            'updated': updated_count,
+            'total': len(records),
+            'source': 'excel',
+        }), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al sincronizar los registros: {str(e)}"}), 500
+
+
+@app.route('/api/balanzas/export', methods=['GET'])
+def exportar_balanzas_excel():
+    try:
+        filtro_estado_raw = (request.args.get('estado') or 'all').strip()
+
+        def normalize_estado(value: str) -> str:
+            normalized = unicodedata.normalize('NFD', value)
+            normalized = ''.join(ch for ch in normalized if unicodedata.category(ch) != 'Mn')
+            normalized = normalized.strip().lower()
+            return re.sub(r'\s+', ' ', normalized)
+
+        def matches_estado_filter(record: dict) -> bool:
+            normalized_filter = normalize_estado(filtro_estado_raw)
+            if normalized_filter in {'', 'all', 'todo', 'todos'}:
+                return True
+
+            estado = str(record.get('ESTADO', '')).strip()
+            normalized_estado = normalize_estado(estado)
+
+            aliases = {
+                'vigente': {'vigente'},
+                'por vencer': {'por vencer', 'porvencer'},
+                'vencido': {'vencido', 'vencidos'},
+            }
+
+            for canonical, options in aliases.items():
+                if normalized_filter in options:
+                    return normalized_estado == canonical
+
+            return normalized_estado == normalized_filter
+
+        def build_export_file_name() -> str:
+            normalized_filter = normalize_estado(filtro_estado_raw)
+            suffix_map = {
+                'all': 'todo',
+                'todo': 'todo',
+                'todos': 'todo',
+                'vigente': 'vigente',
+                'por vencer': 'por_vencer',
+                'porvencer': 'por_vencer',
+                'vencido': 'vencido',
+                'vencidos': 'vencido',
+            }
+            suffix = suffix_map.get(normalized_filter, 'filtro')
+            return f'balanzas_export_{suffix}.xlsx'
+
+        if using_azure_table_storage():
+            table_client = get_balanzas_table_client()
+            entities = list(table_client.query_entities(
+                f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
+            ))
+            records = [balanza_record_from_entity(entity) for entity in entities]
+            records = [record for record in records if matches_estado_filter(record)]
+
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            headers = [*BALANZAS_COLUMNAS, ROW_ID_COLUMN]
+            sheet.append(headers)
+
+            for record in records:
+                sheet.append([record.get(header, '') for header in headers])
+
+            output = BytesIO()
+            workbook.save(output)
+            output.seek(0)
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name=build_export_file_name(),
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            )
+
+        records = load_balanzas_records()
+        updated_records = [compute_balanzas_fields(dict(record)) for record in records]
+        save_balanzas_records(updated_records)
+        filtered_records = [record for record in updated_records if matches_estado_filter(record)]
+
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        headers = [*BALANZAS_COLUMNAS, ROW_ID_COLUMN]
+        sheet.append(headers)
+
+        for record in filtered_records:
+            sheet.append([record.get(header, '') for header in headers])
+
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=build_export_file_name(),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al exportar Excel: {str(e)}"}), 500
+
+
+@app.route('/api/balanzas', methods=['POST'])
+def crear_balanza():
+    try:
+        payload = request.get_json(silent=True) or {}
+        if not payload:
+            return jsonify({"error": "Carga JSON inválida o cuerpo vacío."}), 400
+
+        row_key = uuid.uuid4().hex
+
+        if using_azure_table_storage():
+            table_client = get_balanzas_table_client()
+            entity = build_balanzas_entity(payload, row_key)
+            table_client.create_entity(entity)
+        else:
+            record = build_balanzas_record(payload, row_key)
+            records = load_balanzas_records()
+            records.append(record)
+            save_balanzas_records(records)
+
+        return jsonify({"ok": True, "rowId": row_key}), 201
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al guardar el registro: {str(e)}"}), 500
+
+
+@app.route('/api/balanzas/<row_id>', methods=['PUT'])
+def actualizar_balanza(row_id: str):
+    try:
+        payload = request.get_json(silent=True) or {}
+
+        if using_azure_table_storage():
+            table_client = get_balanzas_table_client()
+            try:
+                table_client.get_entity(BALANZAS_PARTITION_KEY, row_id)
+            except ResourceNotFoundError:
+                return jsonify({"error": "Registro no encontrado"}), 404
+
+            entity = build_balanzas_entity(payload, row_id)
+            table_client.update_entity(entity, mode=UpdateMode.REPLACE)
+        else:
+            records = load_balanzas_records()
+            index = find_balanzas_record_index(records, row_id)
+            if index == -1:
+                return jsonify({"error": "Registro no encontrado"}), 404
+            records[index] = build_balanzas_record(payload, row_id)
+            save_balanzas_records(records)
+
+        return jsonify({"ok": True, "mensaje": "Registro actualizado"}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error al actualizar el registro: {str(e)}"}), 500
+
+
+@app.route('/api/balanzas/<row_id>', methods=['DELETE'])
+def eliminar_balanza(row_id: str):
+    try:
+        if using_azure_table_storage():
+            table_client = get_balanzas_table_client()
+
+            try:
+                table_client.get_entity(BALANZAS_PARTITION_KEY, row_id)
+            except ResourceNotFoundError:
+                return jsonify({"error": "Registro no encontrado"}), 404
+
+            table_client.delete_entity(BALANZAS_PARTITION_KEY, row_id)
+        else:
+            records = load_balanzas_records()
+            index = find_balanzas_record_index(records, row_id)
+            if index == -1:
+                return jsonify({"error": "Registro no encontrado"}), 404
+            records.pop(index)
+            save_balanzas_records(records)
 
         return jsonify({"ok": True, "mensaje": "Registro eliminado"}), 200
     except Exception as e:

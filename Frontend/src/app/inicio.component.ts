@@ -15,6 +15,10 @@ import { RouterLink } from '@angular/router';
         <h2>Gestión de baterías</h2>
         <p>Registrar, consultar, editar y eliminar baterías.</p>
       </a>
+      <a class="menu-card" routerLink="/modulos/balanzas">
+        <h2>Gestión de balanzas</h2>
+        <p>Registrar, consultar, editar y eliminar balanzas.</p>
+      </a>
     </section>
   `,
   styles: `

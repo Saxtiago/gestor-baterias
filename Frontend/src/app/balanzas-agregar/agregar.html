@@ -1,0 +1,97 @@
+<section class="form-header">
+	<div>
+		<h1>Agregar balanza</h1>
+		<p>Completa los datos base. El vencimiento se calcula automaticamente.</p>
+	</div>
+	<a class="back-link" routerLink="/modulos/balanzas">← Volver al menu</a>
+</section>
+
+<section class="notice success" *ngIf="savedMessage">{{ savedMessage }}</section>
+<section class="notice error" *ngIf="errorMessage">{{ errorMessage }}</section>
+
+<form class="form-card" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+	<div class="form-grid">
+		<label class="field">
+			<span>COD</span>
+			<input type="text" formControlName="cod" placeholder="Ej: 378" />
+			<small *ngIf="form.controls.cod.touched && form.controls.cod.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Negocio</span>
+			<input type="text" formControlName="negocio" placeholder="Ej: BODEGA SISTEMAS" />
+			<small *ngIf="form.controls.negocio.touched && form.controls.negocio.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Marca</span>
+			<input type="text" formControlName="marca" placeholder="Ej: OHAUS" />
+		</label>
+
+		<label class="field">
+			<span>Modelo</span>
+			<input type="text" formControlName="modelo" placeholder="Ej: Ranger 3000" />
+		</label>
+
+		<label class="field">
+			<span>Ubicacion</span>
+			<input type="text" formControlName="ubicacion" placeholder="Ej: Bodega principal" />
+		</label>
+
+		<label class="field">
+			<span>Activo</span>
+			<input type="text" formControlName="activo" placeholder="Ej: SI" />
+		</label>
+
+		<label class="field">
+			<span>Serial</span>
+			<input type="text" formControlName="serial" placeholder="Ej: B81105" />
+			<small *ngIf="form.controls.serial.touched && form.controls.serial.invalid">Requerido.</small>
+			<small *ngIf="duplicateSerialWarning">{{ duplicateSerialWarning }}</small>
+		</label>
+
+		<label class="field">
+			<span>Fecha certificacion / compra</span>
+			<input type="date" formControlName="fechaCertificacion" />
+			<small *ngIf="form.controls.fechaCertificacion.touched && form.controls.fechaCertificacion.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>NII</span>
+			<input type="text" formControlName="nii" placeholder="Ej: B81105" />
+			<small *ngIf="form.controls.nii.touched && form.controls.nii.invalid">Requerido.</small>
+		</label>
+
+		<label class="field">
+			<span>Actas</span>
+			<input type="text" formControlName="actas" placeholder="Ej: ACTA-001" />
+		</label>
+
+		<label class="field">
+			<span>Observaciones</span>
+			<input type="text" formControlName="observaciones" placeholder="Notas adicionales" />
+		</label>
+	</div>
+
+	<div class="computed-grid">
+		<label class="field">
+			<span>Fecha de vencimiento</span>
+			<input type="text" [value]="fechaVencimiento" readonly />
+		</label>
+
+		<label class="field">
+			<span>Estado</span>
+			<input type="text" [value]="estado" readonly />
+		</label>
+
+		<label class="field">
+			<span>Dias vencidos</span>
+			<input type="text" [value]="diasVencidos ?? ''" readonly />
+		</label>
+	</div>
+
+	<div class="actions">
+		<button class="btn primary" type="submit" [disabled]="isSaving">Guardar</button>
+		<button class="btn ghost" type="button" (click)="onReset()">Limpiar</button>
+	</div>
+</form>

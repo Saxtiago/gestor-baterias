@@ -1,0 +1,112 @@
+<section class="list-header">
+	<div>
+		<h1>Buscar balanzas</h1>
+		<p>Filtra por estado, marca y fechas para revisar el inventario de balanzas.</p>
+	</div>
+	<a class="back-link" routerLink="/modulos/balanzas">← Volver al menu</a>
+</section>
+
+
+<section class="filters-shell">
+	<section class="panel-block filters-panel">
+		<h3>Filtros</h3>
+		<div class="filters-grid">
+			<label class="field">
+				<span>Buscar</span>
+				<input type="text" [(ngModel)]="searchText" (ngModelChange)="onFiltersChange()" placeholder="Codigo, serial, NII, modelo..." />
+			</label>
+
+			<label class="field">
+				<span>Negocio</span>
+				<input type="text" [(ngModel)]="negocioFilter" (ngModelChange)="onFiltersChange()" placeholder="Ej: BODEGA SISTEMAS" />
+			</label>
+
+			<label class="field">
+				<span>Marca</span>
+				<select [(ngModel)]="marcaFilter" (ngModelChange)="onFiltersChange()">
+					<option value="">Todas</option>
+					<option *ngFor="let marca of marcasDisponibles$ | async" [value]="marca">{{ marca }}</option>
+				</select>
+			</label>
+
+			<label class="field">
+				<span>Vencimiento desde</span>
+				<input type="date" [(ngModel)]="fechaDesde" (ngModelChange)="onFiltersChange()" />
+			</label>
+
+			<label class="field">
+				<span>Vencimiento hasta</span>
+				<input type="date" [(ngModel)]="fechaHasta" (ngModelChange)="onFiltersChange()" />
+			</label>
+		</div>
+
+		<div class="state-checks">
+			<label class="check" *ngFor="let estado of estados">
+				<input
+					type="checkbox"
+					[checked]="isEstadoActivo(estado)"
+					(change)="onEstadoCheckboxChange(estado, $any($event.target).checked)"
+				/>
+				<span>{{ estado }}</span>
+			</label>
+		</div>
+
+		<button class="btn ghost" type="button" (click)="onClearFilters()">Limpiar filtros</button>
+	</section>
+</section>
+
+<section class="table-card">
+	<ng-container *ngIf="registrosFiltrados$ | async as registrosFiltradosAny; else loadingTable">
+		<table>
+			<thead>
+				<tr>
+					<th>COD</th>
+					<th>Negocio</th>
+					<th>Marca</th>
+					<th>Modelo</th>
+					<th>Ubicacion</th>
+					<th>Activo</th>
+					<th>Serial</th>
+					<th>Fecha certificacion</th>
+					<th>NII</th>
+					<th>Vencimiento</th>
+					<th>Estado</th>
+					<th>Dias vencidos</th>
+					<th>Actas</th>
+					<th>Observaciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let registro of $any(registrosFiltradosAny)">
+					<td>{{ registro.cod }}</td>
+					<td>{{ registro.negocio }}</td>
+					<td>{{ registro.marca }}</td>
+					<td>{{ registro.modelo }}</td>
+					<td>{{ registro.ubicacion }}</td>
+					<td>{{ registro.activo }}</td>
+					<td>{{ registro.serial }}</td>
+					<td>{{ registro.fechaCertificacion }}</td>
+					<td>{{ registro.nii }}</td>
+					<td>{{ registro.fechaVencimiento }}</td>
+					<td>
+						<span class="estado" [class.vencido]="registro.estado === 'Vencido'" [class.por-vencer]="registro.estado === 'Por vencer'">
+							{{ registro.estado }}
+						</span>
+					</td>
+					<td>{{ registro.diasVencidos }}</td>
+					<td>{{ registro.actas }}</td>
+					<td>{{ registro.observaciones }}</td>
+				</tr>
+				<tr *ngIf="$any(registrosFiltradosAny).length === 0">
+					<td colspan="14" class="empty">Sin resultados con los filtros actuales.</td>
+				</tr>
+			</tbody>
+		</table>
+	</ng-container>
+	<ng-template #loadingTable>
+		<div class="empty">Cargando registros...</div>
+	</ng-template>
+</section>
+
+<p class="status" *ngIf="isLoading">Cargando datos desde el Excel...</p>
+<p class="status error" *ngIf="errorMessage">{{ errorMessage }}</p>
