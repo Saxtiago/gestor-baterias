@@ -36,25 +36,6 @@
 	backdrop-filter: blur(6px);
 }
 
-.list-layout {
-	max-width: 1200px;
-	margin: 0 auto;
-	display: grid;
-	grid-template-columns: 260px minmax(0, 1fr);
-	gap: 1rem;
-	align-items: start;
-}
-
-.insights-panel {
-	position: sticky;
-	top: 1rem;
-	display: grid;
-	gap: 0.75rem;
-	max-height: calc(100vh - 2rem);
-	overflow: auto;
-	padding-right: 0.3rem;
-}
-
 .panel-block {
 	background: #0f172a;
 	border: 1px solid #2b3a52;
@@ -68,13 +49,29 @@
 	color: #f8fafc;
 }
 
-.filters {
-	max-width: 1100px;
-	margin: 0 auto 1.5rem;
+.filters-shell {
+	max-width: 1200px;
+	margin: 0 auto 1rem;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 	gap: 1rem;
+}
+
+.filters-panel h3 {
+	margin-bottom: 0.8rem;
+	font-size: 1rem;
+}
+
+.filters-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+	gap: 0.85rem 1rem;
 	align-items: end;
+}
+
+.panel-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
 }
 
 .field {
@@ -137,10 +134,11 @@
 }
 
 .table-card {
-	margin: 0;
+	max-width: 1200px;
+	margin: 0 auto;
 	background: #0f172a;
 	border-radius: 16px;
-	padding: 0.75rem;
+	padding: 0.9rem;
 	border: 1px solid #2b3a52;
 	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 	overflow-x: auto;
@@ -202,16 +200,16 @@ table {
 	width: 100%;
 	border-collapse: collapse;
 	table-layout: auto;
-	min-width: 1320px;
+	min-width: 1280px;
 }
 
 th,
 td {
 	text-align: left;
-	padding: 0.55rem 0.5rem;
+	padding: 0.7rem 0.65rem;
 	border-bottom: 1px solid #334155;
-	font-size: 0.8rem;
-	line-height: 1.25;
+	font-size: 0.82rem;
+	line-height: 1.3;
 	vertical-align: middle;
 	white-space: nowrap;
 	color: #e2e8f0;
@@ -276,17 +274,18 @@ th {
 		flex-direction: column;
 		align-items: flex-start;
 	}
-}
 
-@media (max-width: 1040px) {
-	.list-layout {
+	.panel-grid {
 		grid-template-columns: 1fr;
 	}
 
-	.insights-panel {
-		position: static;
-		max-height: none;
-		overflow: visible;
-		padding-right: 0;
+	.filters-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 1040px) {
+	.table-card {
+		padding: 0.75rem;
 	}
 }

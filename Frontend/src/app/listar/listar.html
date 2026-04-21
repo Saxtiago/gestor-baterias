@@ -6,10 +6,11 @@
 	<a class="back-link" routerLink="/modulos/baterias">← Volver al menu</a>
 </section>
 
-<section class="list-layout">
-	<aside class="insights-panel">
-		<section class="panel-block">
-			<h3>Filtros</h3>
+
+<section class="filters-shell">
+	<section class="panel-block filters-panel">
+		<h3>Filtros</h3>
+		<div class="filters-grid">
 			<label class="field">
 				<span>Buscar</span>
 				<input type="text" [(ngModel)]="searchText" (ngModelChange)="onFiltersChange()" placeholder="Codigo, serial, modelo..." />
@@ -28,31 +29,32 @@
 				</select>
 			</label>
 
-			<div class="field-group">
-				<label class="field">
-					<span>Vencimiento desde</span>
-					<input type="date" [(ngModel)]="fechaDesde" (ngModelChange)="onFiltersChange()" />
-				</label>
-				<label class="field">
-					<span>Vencimiento hasta</span>
-					<input type="date" [(ngModel)]="fechaHasta" (ngModelChange)="onFiltersChange()" />
-				</label>
-			</div>
+			<label class="field">
+				<span>Vencimiento desde</span>
+				<input type="date" [(ngModel)]="fechaDesde" (ngModelChange)="onFiltersChange()" />
+			</label>
 
-			<div class="state-checks">
-				<label class="check" *ngFor="let estado of estados">
-					<input
-						type="checkbox"
-						[checked]="isEstadoActivo(estado)"
-						(change)="onEstadoCheckboxChange(estado, $any($event.target).checked)"
-					/>
-					<span>{{ estado }}</span>
-				</label>
-			</div>
+			<label class="field">
+				<span>Vencimiento hasta</span>
+				<input type="date" [(ngModel)]="fechaHasta" (ngModelChange)="onFiltersChange()" />
+			</label>
+		</div>
 
-			<button class="btn ghost" type="button" (click)="onClearFilters()">Limpiar filtros</button>
-		</section>
+		<div class="state-checks">
+			<label class="check" *ngFor="let estado of estados">
+				<input
+					type="checkbox"
+					[checked]="isEstadoActivo(estado)"
+					(change)="onEstadoCheckboxChange(estado, $any($event.target).checked)"
+				/>
+				<span>{{ estado }}</span>
+			</label>
+		</div>
 
+		<button class="btn ghost" type="button" (click)="onClearFilters()">Limpiar filtros</button>
+	</section>
+
+	<section class="panel-grid">
 		<section class="panel-block">
 			<h3>Estado</h3>
 			<div class="chart-list" *ngIf="estadoChart$ | async as estadoChart">
@@ -94,9 +96,10 @@
 				</button>
 			</div>
 		</section>
-	</aside>
+	</section>
+</section>
 
-	<section class="table-card">
+<section class="table-card">
 		<ng-container *ngIf="registrosFiltrados$ | async as registrosFiltrados; else loadingTable">
 			<table>
 				<thead>
@@ -145,7 +148,6 @@
 		<ng-template #loadingTable>
 			<div class="empty">Cargando registros...</div>
 		</ng-template>
-	</section>
 </section>
 
 <p class="status" *ngIf="isLoading">Cargando datos desde el Excel...</p>
