@@ -13,7 +13,7 @@
 			type="text"
 			[(ngModel)]="searchText"
 			(ngModelChange)="onSearchChange()"
-			placeholder="Codigo, serial, modelo..."
+			placeholder="Buscar por nombre de negocio..."
 		/>
 	</label>
 </section>
@@ -23,24 +23,34 @@
 
 <section class="edit-grid">
 	<section class="results">
-		<h2>Resultados</h2>
+		<h2>Negocios encontrados</h2>
 		<div class="result-grid" *ngIf="resultados$ | async as resultados">
 			<button
 				class="result-card"
 				type="button"
 				*ngFor="let item of resultados"
-				(click)="onSelect(item)"
-				[class.active]="selectedRegistro?.rowId === item.rowId"
+				(click)="onSelectGroup(item)"
+				[class.active]="selectedNegocio === item.negocio"
 			>
 				<div class="result-title">{{ item.negocio }}</div>
-				<div class="result-sub">{{ item.modelo }} - {{ item.serial }}</div>
+				<div class="result-sub">
+					{{ item.vencidas }} vencida{{ item.vencidas === 1 ? '' : 's' }} de {{ item.total }} registro{{ item.total === 1 ? '' : 's' }}
+				</div>
 			</button>
 			<p class="empty" *ngIf="resultados.length === 0">Sin resultados.</p>
 		</div>
 		<p class="empty" *ngIf="isLoading">Cargando registros...</p>
 	</section>
 
-	<section class="form-card" *ngIf="selectedRegistro as registro">
+	<section class="form-card" *ngIf="selectedRegistros.length">
+		<div class="group-header">
+			<div>
+				<h2>{{ selectedNegocio }}</h2>
+				<p>Se editarán {{ selectedRegistros.length }} registros con este mismo negocio.</p>
+			</div>
+			<button class="btn ghost" type="button" (click)="onReset()">Cerrar</button>
+		</div>
+
 		<section class="changes-card" *ngIf="hasUnsavedChanges">
 			<h3>Resumen de cambios</h3>
 			<div class="changes-list">
@@ -52,61 +62,80 @@
 			</div>
 		</section>
 
-		<div class="form-grid">
-			<label class="field">
-				<span>COD</span>
-				<input type="text" [(ngModel)]="registro.cod" />
-			</label>
+		<div class="record-stack">
+			<article class="record-card" *ngFor="let registro of selectedRegistros; let index = index">
+				<header class="record-card__header">
+					<div>
+						<h3>Registro {{ index + 1 }}</h3>
+						<p>{{ registro.modelo || 'Sin modelo' }} · {{ registro.serial || 'Sin serial' }}</p>
+					</div>
+					<div class="record-meta">
+						<span class="record-badge">{{ registro.rowId }}</span>
+						<span class="record-status" [class.vencido]="getRegistroEstado(registro) === 'Vencido'" [class.por-vencer]="getRegistroEstado(registro) === 'Por vencer'">
+							{{ getRegistroEstado(registro) || 'Sin estado' }}
+						</span>
+					</div>
+				</header>
 
-			<label class="field">
-				<span>Negocio</span>
-				<input type="text" [(ngModel)]="registro.negocio" />
-			</label>
+				<p class="record-note">Vence: {{ getRegistroFechaVencimiento(registro) || 'Sin fecha calculada' }}</p>
 
-			<label class="field">
-				<span>UPS Marca</span>
-				<input type="text" [(ngModel)]="registro.upsMarca" />
-			</label>
+				<div class="form-grid">
+					<label class="field">
+						<span>COD</span>
+						<input type="text" [(ngModel)]="registro.cod" />
+					</label>
 
-			<label class="field">
-				<span>Modelo</span>
-				<input type="text" [(ngModel)]="registro.modelo" />
-			</label>
+					<label class="field">
+						<span>Negocio</span>
+						<input type="text" [(ngModel)]="registro.negocio" />
+					</label>
 
-			<label class="field">
-				<span>Capacidad</span>
-				<input type="text" [(ngModel)]="registro.capacidad" />
-			</label>
+					<label class="field">
+						<span>UPS Marca</span>
+						<input type="text" [(ngModel)]="registro.upsMarca" />
+					</label>
 
-			<label class="field">
-				<span>Serial</span>
-				<input type="text" [(ngModel)]="registro.serial" />
-			</label>
+					<label class="field">
+						<span>Modelo</span>
+						<input type="text" [(ngModel)]="registro.modelo" />
+					</label>
 
-			<label class="field">
-				<span>Inventario No</span>
-				<input type="text" [(ngModel)]="registro.inventarioNo" />
-			</label>
+					<label class="field">
+						<span>Capacidad</span>
+						<input type="text" [(ngModel)]="registro.capacidad" />
+					</label>
 
-			<label class="field">
-				<span>Fecha de instalacion</span>
-				<input type="date" [(ngModel)]="registro.fechaInstalacion" />
-			</label>
+					<label class="field">
+						<span>Serial</span>
+						<input type="text" [(ngModel)]="registro.serial" />
+					</label>
 
-			<label class="field">
-				<span>Referencia</span>
-				<input type="text" [(ngModel)]="registro.referencia" />
-			</label>
+					<label class="field">
+						<span>Inventario No</span>
+						<input type="text" [(ngModel)]="registro.inventarioNo" />
+					</label>
 
-			<label class="field">
-				<span>Cantidad</span>
-				<input type="number" min="1" [(ngModel)]="registro.cantidad" />
-			</label>
+					<label class="field">
+						<span>Fecha de instalacion</span>
+						<input type="date" [(ngModel)]="registro.fechaInstalacion" />
+					</label>
+
+					<label class="field">
+						<span>Referencia</span>
+						<input type="text" [(ngModel)]="registro.referencia" />
+					</label>
+
+					<label class="field">
+						<span>Cantidad</span>
+						<input type="number" min="1" [(ngModel)]="registro.cantidad" />
+					</label>
+				</div>
+			</article>
 		</div>
 
 		<div class="actions">
 			<button class="btn primary" type="button" (click)="onSave()" [disabled]="isSaving">
-				Guardar cambios
+				Guardar cambios en el negocio
 			</button>
 			<button class="btn ghost" type="button" (click)="onReset()">Cancelar</button>
 			<span class="dirty" *ngIf="hasUnsavedChanges">Hay cambios sin guardar</span>

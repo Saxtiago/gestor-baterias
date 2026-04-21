@@ -201,7 +201,8 @@
 table {
 	width: 100%;
 	border-collapse: collapse;
-	table-layout: fixed;
+	table-layout: auto;
+	min-width: 1320px;
 }
 
 th,
@@ -210,9 +211,9 @@ td {
 	padding: 0.55rem 0.5rem;
 	border-bottom: 1px solid #334155;
 	font-size: 0.8rem;
-	white-space: normal;
-	word-break: break-word;
-	overflow-wrap: anywhere;
+	line-height: 1.25;
+	vertical-align: middle;
+	white-space: nowrap;
 	color: #e2e8f0;
 }
 
@@ -223,6 +224,7 @@ th {
 	position: sticky;
 	top: 0;
 	z-index: 1;
+	box-shadow: 0 1px 0 #334155;
 }
 
 .estado {

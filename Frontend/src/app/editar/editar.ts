@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, On
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatest, finalize, map, Observable, of, shareReplay, startWith, Subject, switchMap, asyncScheduler, observeOn } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, finalize, forkJoin, map, Observable, of, shareReplay, startWith, Subject, switchMap, asyncScheduler, observeOn, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 type RegistroApi = Record<string, string | number>;
@@ -28,6 +28,13 @@ interface ChangeItem {
   after: string;
 }
 
+interface GrupoNegocio {
+  negocio: string;
+  registros: RegistroEditable[];
+  total: number;
+  vencidas: number;
+}
+
 @Component({
   selector: 'app-editar',
   imports: [AsyncPipe, FormsModule, NgFor, NgIf, RouterLink, HttpClientModule],
@@ -41,17 +48,19 @@ export class Editar implements OnInit {
   private readonly defaultLifeMonths = 36;
   private readonly filtrosSubject = new BehaviorSubject({ searchText: '' });
   private readonly refreshSubject = new Subject<void>();
+  private registrosCache: RegistroEditable[] = [];
 
   protected searchText = '';
-  protected selectedRegistro: RegistroEditable | null = null;
-  protected originalRegistro: RegistroEditable | null = null;
+  protected selectedNegocio = '';
+  protected selectedRegistros: RegistroEditable[] = [];
+  protected originalRegistros: RegistroEditable[] = [];
   protected isLoading = false;
   protected isSaving = false;
   protected errorMessage = '';
   protected savedMessage = '';
 
   protected registros$!: Observable<RegistroEditable[] | null>;
-  protected resultados$!: Observable<RegistroEditable[] | null>;
+  protected resultados$!: Observable<GrupoNegocio[] | null>;
 
   constructor(
     private readonly http: HttpClient,
@@ -62,6 +71,9 @@ export class Editar implements OnInit {
       switchMap(() =>
         this.http.get<RegistroApi[]>(this.apiUrl).pipe(
           map((data) => data.map((registro) => this.mapRegistro(registro))),
+          tap((registros) => {
+            this.registrosCache = registros;
+          }),
           catchError(() => {
             this.errorMessage = 'No se pudo cargar la informacion del Excel.';
             this.cdr.markForCheck();
@@ -82,7 +94,7 @@ export class Editar implements OnInit {
       this.filtrosSubject.asObservable(),
     ]).pipe(
       map(([registros, filtros]) =>
-        registros ? this.applyFilters(registros, filtros.searchText) : null,
+        registros ? this.groupRegistros(registros, filtros.searchText) : null,
       ),
       observeOn(asyncScheduler),
     );
@@ -127,14 +139,15 @@ export class Editar implements OnInit {
   }
 
   onSelect(registro: RegistroEditable): void {
-    this.savedMessage = '';
-    this.errorMessage = '';
-    this.selectedRegistro = { ...registro };
-    this.originalRegistro = { ...registro };
+    this.selectBusinessGroup(registro.negocio);
+  }
+
+  onSelectGroup(grupo: GrupoNegocio): void {
+    this.selectBusinessGroup(grupo.negocio);
   }
 
   onSave(): void {
-    if (!this.selectedRegistro) {
+    if (!this.selectedRegistros.length) {
       return;
     }
 
@@ -150,16 +163,22 @@ export class Editar implements OnInit {
     this.savedMessage = '';
     this.cdr.markForCheck();
 
-    const payload = this.buildPayload(this.selectedRegistro);
-    this.http.put(`${this.apiUrl}/${this.selectedRegistro.rowId}`, payload).pipe(
+    const requests = this.selectedRegistros.map((registro) =>
+      this.http.put(`${this.apiUrl}/${registro.rowId}`, this.buildPayload(registro)),
+    );
+
+    forkJoin(requests).pipe(
       finalize(() => {
         this.isSaving = false;
         this.cdr.markForCheck();
       }),
     ).subscribe({
       next: () => {
-        this.savedMessage = 'Registro actualizado.';
-        this.originalRegistro = this.selectedRegistro ? { ...this.selectedRegistro } : null;
+        const cantidad = this.selectedRegistros.length;
+        this.savedMessage = cantidad === 1
+          ? 'Registro actualizado.'
+          : `Se actualizaron ${cantidad} registros del negocio ${this.selectedNegocio}.`;
+        this.originalRegistros = this.selectedRegistros.map((registro) => ({ ...registro }));
         this.fetchRegistros();
       },
       error: () => {
@@ -176,15 +195,16 @@ export class Editar implements OnInit {
       }
     }
 
-    this.selectedRegistro = null;
-    this.originalRegistro = null;
+    this.selectedNegocio = '';
+    this.selectedRegistros = [];
+    this.originalRegistros = [];
     this.savedMessage = '';
     this.errorMessage = '';
     this.cdr.markForCheck();
   }
 
   get hasUnsavedChanges(): boolean {
-    if (!this.selectedRegistro || !this.originalRegistro) {
+    if (!this.selectedRegistros.length || !this.originalRegistros.length) {
       return false;
     }
 
@@ -196,7 +216,7 @@ export class Editar implements OnInit {
   }
 
   private getChangeSummary(): ChangeItem[] {
-    if (!this.selectedRegistro || !this.originalRegistro) {
+    if (!this.selectedRegistros.length || !this.originalRegistros.length) {
       return [];
     }
 
@@ -213,30 +233,85 @@ export class Editar implements OnInit {
       { key: 'cantidad', label: 'Cantidad' },
     ];
 
-    return fields
-      .filter((field) => {
-        const before = String(this.originalRegistro?.[field.key] ?? '').trim();
-        const after = String(this.selectedRegistro?.[field.key] ?? '').trim();
-        return before !== after;
-      })
-      .map((field) => ({
-        label: field.label,
-        before: String(this.originalRegistro?.[field.key] ?? ''),
-        after: String(this.selectedRegistro?.[field.key] ?? ''),
-      }));
+    return this.selectedRegistros.flatMap((registro, index) => {
+      const originalRegistro = this.originalRegistros[index];
+      if (!originalRegistro) {
+        return [];
+      }
+
+      return fields
+        .filter((field) => {
+          const before = String(originalRegistro[field.key] ?? '').trim();
+          const after = String(registro[field.key] ?? '').trim();
+          return before !== after;
+        })
+        .map((field) => ({
+          label: `${field.label} - Registro ${index + 1}`,
+          before: String(originalRegistro[field.key] ?? ''),
+          after: String(registro[field.key] ?? ''),
+        }));
+    });
   }
 
-  private applyFilters(registros: RegistroEditable[], searchText: string): RegistroEditable[] {
+  private groupRegistros(registros: RegistroEditable[], searchText: string): GrupoNegocio[] {
     const texto = searchText.trim().toLowerCase();
-    if (!texto) {
-      return registros;
+    const grupos = new Map<string, RegistroEditable[]>();
+    const negocioKeys = new Set<string>();
+
+    for (const registro of registros) {
+      const negocioKey = this.normalizeText(registro.negocio);
+      const current = grupos.get(negocioKey) ?? [];
+      current.push(registro);
+      grupos.set(negocioKey, current);
+
+      if (!texto || this.normalizeText(registro.negocio).includes(texto)) {
+        negocioKeys.add(negocioKey);
+      }
     }
 
-    return registros.filter((registro) =>
-      Object.values(registro).some((value) =>
-        String(value).toLowerCase().includes(texto),
-      ),
+    return Array.from(negocioKeys).map((negocioKey) => {
+      const registrosDelNegocio = grupos.get(negocioKey) ?? [];
+      return {
+        negocio: registrosDelNegocio[0]?.negocio ?? '',
+        registros: registrosDelNegocio.map((registro) => ({ ...registro })),
+        total: registrosDelNegocio.length,
+        vencidas: registrosDelNegocio.filter((registro) => this.isRegistroVencido(registro)).length,
+      };
+    }).sort((a, b) => a.negocio.localeCompare(b.negocio, 'es', { sensitivity: 'base' }));
+  }
+
+  private selectBusinessGroup(negocio: string): void {
+    const registros = this.registrosCache.filter(
+      (registro) => this.normalizeText(registro.negocio) === this.normalizeText(negocio),
     );
+
+    this.savedMessage = '';
+    this.errorMessage = '';
+    this.selectedNegocio = negocio;
+    this.selectedRegistros = registros.map((registro) => ({ ...registro }));
+    this.originalRegistros = registros.map((registro) => ({ ...registro }));
+    this.cdr.markForCheck();
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  protected getRegistroFechaVencimiento(registro: RegistroEditable): string {
+    return this.computeFechaVencimiento(registro.fechaInstalacion);
+  }
+
+  protected getRegistroEstado(registro: RegistroEditable): string {
+    return this.computeEstado(this.getRegistroFechaVencimiento(registro));
+  }
+
+  protected isRegistroVencido(registro: RegistroEditable): boolean {
+    return this.getRegistroEstado(registro) === 'Vencido';
   }
 
   private mapRegistro(registro: RegistroApi): RegistroEditable {
