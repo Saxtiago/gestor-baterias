@@ -51,23 +51,6 @@
 			<button class="btn ghost" type="button" (click)="onReset()">Cerrar</button>
 		</div>
 
-		<label class="record-search field">
-			<span>Buscar dentro de este negocio</span>
-			<input
-				type="text"
-				[(ngModel)]="recordSearchText"
-				placeholder="COD, serial, modelo..."
-			/>
-		</label>
-
-		<p class="record-search-hint" *ngIf="recordSearchText.trim()">
-			Mostrando {{ filteredSelectedRegistros.length }} de {{ selectedRegistros.length }} registros.
-		</p>
-
-		<p class="record-scroll-hint" *ngIf="filteredSelectedRegistros.length > 1">
-			Desplazate dentro de esta barra para revisar los registros sin mover la ventana completa.
-		</p>
-
 		<section class="changes-card" *ngIf="hasUnsavedChanges">
 			<h3>Resumen de cambios</h3>
 			<div class="changes-list">
@@ -80,7 +63,7 @@
 		</section>
 
 		<div class="record-stack">
-			<article class="record-card" *ngFor="let registro of filteredSelectedRegistros; let index = index">
+			<article class="record-card" *ngFor="let registro of selectedRegistros; let index = index">
 				<header class="record-card__header">
 					<div>
 						<h3>Registro {{ index + 1 }}</h3>

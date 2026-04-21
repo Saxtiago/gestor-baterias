@@ -51,7 +51,6 @@ export class Editar implements OnInit {
   private registrosCache: RegistroEditable[] = [];
 
   protected searchText = '';
-  protected recordSearchText = '';
   protected selectedNegocio = '';
   protected selectedRegistros: RegistroEditable[] = [];
   protected originalRegistros: RegistroEditable[] = [];
@@ -197,7 +196,6 @@ export class Editar implements OnInit {
     }
 
     this.selectedNegocio = '';
-    this.recordSearchText = '';
     this.selectedRegistros = [];
     this.originalRegistros = [];
     this.savedMessage = '';
@@ -215,29 +213,6 @@ export class Editar implements OnInit {
 
   get changeSummary(): ChangeItem[] {
     return this.getChangeSummary();
-  }
-
-  get filteredSelectedRegistros(): RegistroEditable[] {
-    if (!this.recordSearchText.trim()) {
-      return this.selectedRegistros;
-    }
-
-    const query = this.normalizeText(this.recordSearchText);
-    return this.selectedRegistros.filter((registro) =>
-      [
-        registro.rowId,
-        registro.cod,
-        registro.negocio,
-        registro.upsMarca,
-        registro.modelo,
-        registro.capacidad,
-        registro.serial,
-        registro.inventarioNo,
-        registro.fechaInstalacion,
-        registro.referencia,
-        String(registro.cantidad),
-      ].some((value) => this.normalizeText(String(value)).includes(query)),
-    );
   }
 
   private getChangeSummary(): ChangeItem[] {
@@ -312,7 +287,6 @@ export class Editar implements OnInit {
 
     this.savedMessage = '';
     this.errorMessage = '';
-    this.recordSearchText = '';
     this.selectedNegocio = negocio;
     this.selectedRegistros = registros.map((registro) => ({ ...registro }));
     this.originalRegistros = registros.map((registro) => ({ ...registro }));
