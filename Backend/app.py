@@ -420,7 +420,6 @@ def get_balanzas_table_client():
         raise ValueError('AZURE_STORAGE_CONNECTION_STRING no esta configurado.')
 
     service = TableServiceClient.from_connection_string(STORAGE_CONNECTION_STRING)
-    service.create_table_if_not_exists(BALANZAS_TABLE_NAME)
     return service.get_table_client(BALANZAS_TABLE_NAME)
 
 
@@ -943,15 +942,19 @@ def eliminar_bateria(row_id: str):
 def listar_balanzas():
     try:
         if using_azure_table_storage():
-            table_client = get_balanzas_table_client()
-            include_all = request.args.get('all', '').strip().lower() in {'1', 'true', 'yes'}
-            if include_all:
-                entities = table_client.list_entities()
-            else:
-                entities = table_client.query_entities(
-                    f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
-                )
-            data = [balanza_record_from_entity(entity) for entity in entities]
+            try:
+                table_client = get_balanzas_table_client()
+                include_all = request.args.get('all', '').strip().lower() in {'1', 'true', 'yes'}
+                if include_all:
+                    entities = table_client.list_entities()
+                else:
+                    entities = table_client.query_entities(
+                        f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
+                    )
+                data = [balanza_record_from_entity(entity) for entity in entities]
+            except Exception:
+                traceback.print_exc()
+                data = load_balanzas_records()
         else:
             data = load_balanzas_records()
         return jsonify(data), 200
@@ -964,38 +967,41 @@ def listar_balanzas():
 def sincronizar_balanzas():
     try:
         if using_azure_table_storage():
-            table_client = get_balanzas_table_client()
-            entities = list(table_client.query_entities(
-                f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
-            ))
+            try:
+                table_client = get_balanzas_table_client()
+                entities = list(table_client.query_entities(
+                    f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
+                ))
 
-            updated_count = 0
-            for entity in entities:
-                fecha_certificacion = str(entity.get(BALANZAS_COLUMN_KEY_MAP['FECHA CERTIFICACION - COMPRA'], '')).strip()
-                computed = build_balanzas_computed_values(fecha_certificacion)
+                updated_count = 0
+                for entity in entities:
+                    fecha_certificacion = str(entity.get(BALANZAS_COLUMN_KEY_MAP['FECHA CERTIFICACION - COMPRA'], '')).strip()
+                    computed = build_balanzas_computed_values(fecha_certificacion)
 
-                patch = {
-                    'PartitionKey': entity['PartitionKey'],
-                    'RowKey': entity['RowKey'],
-                }
-                changed = False
-                for col_name, value in computed.items():
-                    key = BALANZAS_COLUMN_KEY_MAP[col_name]
-                    current_value = str(entity.get(key, ''))
-                    if current_value != value:
-                        patch[key] = value
-                        changed = True
+                    patch = {
+                        'PartitionKey': entity['PartitionKey'],
+                        'RowKey': entity['RowKey'],
+                    }
+                    changed = False
+                    for col_name, value in computed.items():
+                        key = BALANZAS_COLUMN_KEY_MAP[col_name]
+                        current_value = str(entity.get(key, ''))
+                        if current_value != value:
+                            patch[key] = value
+                            changed = True
 
-                if changed:
-                    table_client.update_entity(patch, mode=UpdateMode.MERGE)
-                    updated_count += 1
+                    if changed:
+                        table_client.update_entity(patch, mode=UpdateMode.MERGE)
+                        updated_count += 1
 
-            return jsonify({
-                'ok': True,
-                'updated': updated_count,
-                'total': len(entities),
-                'source': 'azure-table',
-            }), 200
+                return jsonify({
+                    'ok': True,
+                    'updated': updated_count,
+                    'total': len(entities),
+                    'source': 'azure-table',
+                }), 200
+            except Exception:
+                traceback.print_exc()
 
         records = load_balanzas_records()
         updated_count = 0
@@ -1076,30 +1082,33 @@ def exportar_balanzas_excel():
             return f'balanzas_export_{suffix}.xlsx'
 
         if using_azure_table_storage():
-            table_client = get_balanzas_table_client()
-            entities = list(table_client.query_entities(
-                f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
-            ))
-            records = [balanza_record_from_entity(entity) for entity in entities]
-            records = [record for record in records if matches_estado_filter(record)]
+            try:
+                table_client = get_balanzas_table_client()
+                entities = list(table_client.query_entities(
+                    f"PartitionKey eq '{BALANZAS_PARTITION_KEY}'"
+                ))
+                records = [balanza_record_from_entity(entity) for entity in entities]
+                records = [record for record in records if matches_estado_filter(record)]
 
-            workbook = openpyxl.Workbook()
-            sheet = workbook.active
-            headers = [*BALANZAS_COLUMNAS, ROW_ID_COLUMN]
-            sheet.append(headers)
+                workbook = openpyxl.Workbook()
+                sheet = workbook.active
+                headers = [*BALANZAS_COLUMNAS, ROW_ID_COLUMN]
+                sheet.append(headers)
 
-            for record in records:
-                sheet.append([record.get(header, '') for header in headers])
+                for record in records:
+                    sheet.append([record.get(header, '') for header in headers])
 
-            output = BytesIO()
-            workbook.save(output)
-            output.seek(0)
-            return send_file(
-                output,
-                as_attachment=True,
-                download_name=build_export_file_name(),
-                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            )
+                output = BytesIO()
+                workbook.save(output)
+                output.seek(0)
+                return send_file(
+                    output,
+                    as_attachment=True,
+                    download_name=build_export_file_name(),
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                )
+            except Exception:
+                traceback.print_exc()
 
         records = load_balanzas_records()
         updated_records = [compute_balanzas_fields(dict(record)) for record in records]
@@ -1138,9 +1147,16 @@ def crear_balanza():
         row_key = uuid.uuid4().hex
 
         if using_azure_table_storage():
-            table_client = get_balanzas_table_client()
-            entity = build_balanzas_entity(payload, row_key)
-            table_client.create_entity(entity)
+            try:
+                table_client = get_balanzas_table_client()
+                entity = build_balanzas_entity(payload, row_key)
+                table_client.create_entity(entity)
+            except Exception:
+                traceback.print_exc()
+                record = build_balanzas_record(payload, row_key)
+                records = load_balanzas_records()
+                records.append(record)
+                save_balanzas_records(records)
         else:
             record = build_balanzas_record(payload, row_key)
             records = load_balanzas_records()
@@ -1159,14 +1175,23 @@ def actualizar_balanza(row_id: str):
         payload = request.get_json(silent=True) or {}
 
         if using_azure_table_storage():
-            table_client = get_balanzas_table_client()
             try:
-                table_client.get_entity(BALANZAS_PARTITION_KEY, row_id)
-            except ResourceNotFoundError:
-                return jsonify({"error": "Registro no encontrado"}), 404
+                table_client = get_balanzas_table_client()
+                try:
+                    table_client.get_entity(BALANZAS_PARTITION_KEY, row_id)
+                except ResourceNotFoundError:
+                    return jsonify({"error": "Registro no encontrado"}), 404
 
-            entity = build_balanzas_entity(payload, row_id)
-            table_client.update_entity(entity, mode=UpdateMode.REPLACE)
+                entity = build_balanzas_entity(payload, row_id)
+                table_client.update_entity(entity, mode=UpdateMode.REPLACE)
+            except Exception:
+                traceback.print_exc()
+                records = load_balanzas_records()
+                index = find_balanzas_record_index(records, row_id)
+                if index == -1:
+                    return jsonify({"error": "Registro no encontrado"}), 404
+                records[index] = build_balanzas_record(payload, row_id)
+                save_balanzas_records(records)
         else:
             records = load_balanzas_records()
             index = find_balanzas_record_index(records, row_id)
@@ -1185,14 +1210,23 @@ def actualizar_balanza(row_id: str):
 def eliminar_balanza(row_id: str):
     try:
         if using_azure_table_storage():
-            table_client = get_balanzas_table_client()
-
             try:
-                table_client.get_entity(BALANZAS_PARTITION_KEY, row_id)
-            except ResourceNotFoundError:
-                return jsonify({"error": "Registro no encontrado"}), 404
+                table_client = get_balanzas_table_client()
 
-            table_client.delete_entity(BALANZAS_PARTITION_KEY, row_id)
+                try:
+                    table_client.get_entity(BALANZAS_PARTITION_KEY, row_id)
+                except ResourceNotFoundError:
+                    return jsonify({"error": "Registro no encontrado"}), 404
+
+                table_client.delete_entity(BALANZAS_PARTITION_KEY, row_id)
+            except Exception:
+                traceback.print_exc()
+                records = load_balanzas_records()
+                index = find_balanzas_record_index(records, row_id)
+                if index == -1:
+                    return jsonify({"error": "Registro no encontrado"}), 404
+                records.pop(index)
+                save_balanzas_records(records)
         else:
             records = load_balanzas_records()
             index = find_balanzas_record_index(records, row_id)
