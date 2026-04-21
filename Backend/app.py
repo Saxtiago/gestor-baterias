@@ -177,7 +177,8 @@ def load_excel_records() -> list[dict[str, str]]:
             continue
 
         if not row_values.get(ROW_ID_COLUMN):
-            row_values[ROW_ID_COLUMN] = uuid.uuid4().hex
+            # Stable temporary id avoids random ids across refreshes if the file is locked.
+            row_values[ROW_ID_COLUMN] = f'tmp-{row_index}'
             sheet.cell(row=row_index, column=row_id_index + 1).value = row_values[ROW_ID_COLUMN]
             changed = True
 
@@ -505,7 +506,12 @@ def load_balanzas_records() -> list[dict[str, str]]:
         rows.append(row_values)
 
     if changed:
-        workbook.save(BALANZAS_EXCEL_DATA_FILE)
+        try:
+            workbook.save(BALANZAS_EXCEL_DATA_FILE)
+        except PermissionError:
+            # If Excel/OneDrive temporarily locks the file, keep serving data.
+            # Row ids will still be available in-memory and persisted on next writable save.
+            pass
 
     return rows
 
