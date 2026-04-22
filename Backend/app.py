@@ -33,6 +33,7 @@ FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL', '').strip()
 PARTITION_KEY = 'baterias'
 BALANZAS_PARTITION_KEY = 'balanzas'
 ROW_ID_COLUMN = 'rowId'
+BALANZAS_RECORDS_CACHE: list[dict[str, str]] = []
 
 COLUMNAS = [
     'COD',
@@ -516,6 +517,20 @@ def load_balanzas_records() -> list[dict[str, str]]:
     return rows
 
 
+def load_balanzas_records_with_cache() -> list[dict[str, str]]:
+    global BALANZAS_RECORDS_CACHE
+
+    try:
+        rows = load_balanzas_records()
+        BALANZAS_RECORDS_CACHE = [dict(row) for row in rows]
+        return rows
+    except Exception:
+        traceback.print_exc()
+        if BALANZAS_RECORDS_CACHE:
+            return [dict(row) for row in BALANZAS_RECORDS_CACHE]
+        raise
+
+
 def save_balanzas_records(records: list[dict[str, str]]) -> None:
     workbook = openpyxl.Workbook()
     sheet = workbook.active
@@ -950,7 +965,7 @@ def eliminar_bateria(row_id: str):
 @app.route('/api/balanzas', methods=['GET'])
 def listar_balanzas():
     try:
-        data = load_balanzas_records()
+        data = load_balanzas_records_with_cache()
         return jsonify(data), 200
     except Exception as e:
         traceback.print_exc()
